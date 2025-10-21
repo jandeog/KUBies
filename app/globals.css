@@ -1,0 +1,6 @@
+html, body { margin: 0; padding: 0; }
+button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc; }
+input, textarea, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+label { font-weight: 600; display:block; margin-top:8px; }
+.card { border: 1px solid #eee; border-radius: 16px; padding: 12px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.grid { display: grid; gap: 10px; }
