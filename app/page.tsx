@@ -47,7 +47,7 @@ export default function Page() {
   return (
     <div className="grid">
       <div className="card">
-        <h2>Create diary</h2>
+        <h2>KUBE Contractors — Sign in</h2>
         <label>Site</label>
         <select value={siteId} onChange={(e)=>setSiteId(e.target.value)}>
           <option value="">Select…</option>

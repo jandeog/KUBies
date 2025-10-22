@@ -1,6 +1,68 @@
-html, body { margin: 0; padding: 0; }
-button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc; }
-input, textarea, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
-label { font-weight: 600; display:block; margin-top:8px; }
-.card { border: 1px solid #eee; border-radius: 16px; padding: 12px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #666;
+  --card: #f7f7f8;
+  --border: #e5e7eb;
+}
+
+:root.dark {
+  --bg: #0b0b0d;
+  --fg: #e7e7ea;
+  --muted: #a1a1aa;
+  --card: #111215;
+  --border: #26272b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --bg: #0b0b0d;
+    --fg: #e7e7ea;
+    --muted: #a1a1aa;
+    --card: #111215;
+    --border: #26272b;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+a { color: inherit; }
+button {
+  padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+  background: transparent; color: var(--fg); cursor: pointer;
+}
+input, textarea, select {
+  width: 100%; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--border); background: transparent; color: var(--fg);
+}
+label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
+.card {
+  border: 1px solid var(--border); border-radius: 16px; padding: 12px; margin: 12px 0;
+  background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
 .grid { display: grid; gap: 10px; }
+.header {
+  display:flex; justify-content:space-between; align-items:center; gap:8px; padding: 8px 0;
+}
+.brand { font-size: 20px; margin: 0; }
+.kebab {
+  width: 42px; height: 42px; display:inline-flex; align-items:center; justify-content:center;
+  border-radius: 12px; background: transparent;
+}
+.menu {
+  position: absolute; right: 12px; top: 56px; min-width: 200px; padding: 8px;
+  border: 1px solid var(--border); background: var(--card); border-radius: 14px; z-index: 50;
+  box-shadow: 0 6px 24px rgba(0,0,0,.15);
+}
+.menu a, .menu button {
+  display:block; width: 100%; text-align:left; padding:10px 12px; border-radius:10px; border:none;
+  background: transparent;
+}
+.menu a:hover, .menu button:hover { background: rgba(127,127,127,.12); }
+.badge {
+  font-size: 12px; padding: 2px 8px; border:1px solid var(--border); border-radius: 999px; color: var(--muted);
+}
+.toggle {
+  margin-left: 8px; border-radius: 999px; padding: 8px 10px;
+}
