@@ -8,6 +8,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body style={{ maxWidth: 900, margin: '0 auto', padding: 12, fontFamily: 'system-ui' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <h1 style={{ fontSize: 20, margin: 0 }}>Site Diary</h1>
+          <button onClick={() => fetch('/api/logout', { method: 'POST' }).then(()=>location.href='/login')}>
+  Logout
+</button>
+
           <a href="/" style={{ textDecoration: 'none' }}>Home</a>
         </header>
         <main>{children}</main>

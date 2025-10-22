@@ -20,13 +20,7 @@ export default function Page() {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await sb.auth.getUser();
-      if (!user) {
-        const email = prompt('Enter your email to sign in via magic link');
-        if (email) await sb.auth.signInWithOtp({ email });
-        alert('Check your email for the magic link, then reload this page.');
-        return;
-      }
+      
       const { data: sitesData } = await sb.from('sites').select('id,name').order('name');
       setSites(sitesData || []);
       const { data: diariesData } = await sb.from('diaries').select('id,date,site_id,weather,activities').order('date', { ascending: false }).limit(50);

@@ -21,7 +21,13 @@ export default function DiaryView({ params }: any) {
       setDiary(d as any);
       const { data: p } = await sb.from('diary_photos').select('id,storage_path').eq('diary_id', params.id);
       setPhotos(p || []);
-      const res = await fetch(`/api/sign-url?diary=${params.id}`);
+      <img
+  key={ph.id}
+  src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/diary-photos/${ph.storage_path}`}
+  alt=""
+  style={{ width:'100%', borderRadius:12, objectFit:'cover', aspectRatio:'1/1' }}
+/>
+
       const map = await res.json();
       setUrls(map);
     })();
