@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer } from '@/lib/supabase-server';
 import { buildDiaryPdf } from '@/lib/pdf';
 
 export const dynamic = 'force-dynamic';
