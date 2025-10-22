@@ -5,7 +5,7 @@ import { supabaseBrowser } from '@/lib/supabase-browser';
 
 const sb = supabaseBrowser();
 
-type Site = { id: string; name: string };
+type Site = { id: string; title: string };
 type Diary = { id: string; date: string; site_id: string; weather: string | null; activities: string | null };
 
 export default function Page() {
@@ -21,8 +21,8 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       
-      const { data: sitesData } = await sb.from('sites').select('id,name').order('name');
-      setSites(sitesData || []);
+const { data: sitesData } = await sb.from('sites').select('id,title').order('title');
+setSites(sitesData || []);
       const { data: diariesData } = await sb.from('diaries').select('id,date,site_id,weather,activities').order('date', { ascending: false }).limit(50);
       setDiaries(diariesData || []);
     })();
@@ -47,11 +47,11 @@ export default function Page() {
   return (
     <div className="grid">
       <div className="card">
-        <h2>KUBE Contractors — Sign in</h2>
+        <h2>Site Diary</h2>
         <label>Site</label>
         <select value={siteId} onChange={(e)=>setSiteId(e.target.value)}>
           <option value="">Select…</option>
-          {sites.map(s=> <option value={s.id} key={s.id}>{s.name}</option>)}
+          {sites.map(s=> <option value={s.id} key={s.id}>{s.title}</option>)}
         </select>
         <label>Date</label>
         <input type="date" value={date} onChange={(e)=>setDate(e.target.value)} />

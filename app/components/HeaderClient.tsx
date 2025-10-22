@@ -43,6 +43,7 @@ export default function HeaderClient() {
         <div className="menu" onMouseLeave={()=>setOpen(false)}>
           <a href="/">🏠 Home</a>
           <a href="/">📒 Site Diary</a>
+              <a href="/sites">🗂️ Site Explorer</a>
           <button onClick={logout}>🚪 Logout</button>
         </div>
       )}
