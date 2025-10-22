@@ -1,9 +1,7 @@
-import dynamic from 'next/dynamic';
+// (no 'use client' here)
+import SitesClient from './SitesClient';
 
-// Load the client component only in the browser
-const SitesClient = dynamic(() => import('./SitesClient'), { ssr: false });
-
-// Optional: ensure no ISR caching
+// Optional: keep if you had it; it's allowed in a server file
 export const revalidate = 0;
 
 export default function Page() {
