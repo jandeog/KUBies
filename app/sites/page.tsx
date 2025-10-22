@@ -11,6 +11,8 @@ type Site = {
   latitude?: number | null;
   longitude?: number | null;
   maps_url?: string | null;
+  vat?: string | null;         // NEW
+  tax_office?: string | null;  // NEW
   contact_name?: string | null;
   contact_phone?: string | null;
   start_date?: string | null; // yyyy-mm-dd
@@ -30,12 +32,28 @@ export default function SiteExplorer() {
   const [showArchived, setShowArchived] = useState(false);
 
   // form state
-  const empty: Site = { title: '', address: '', employer: '', latitude: undefined, longitude: undefined, maps_url: '', contact_name: '', contact_phone: '', start_date: '', end_date: '', notes: '', archived: false };
+  const empty: Site = {
+    title: '',
+    address: '',
+    employer: '',
+    latitude: undefined,
+    longitude: undefined,
+    maps_url: '',
+    vat: '',             // NEW
+    tax_office: '',      // NEW
+    contact_name: '',
+    contact_phone: '',
+    start_date: '',
+    end_date: '',
+    notes: '',
+    archived: false
+  };
   const [editing, setEditing] = useState<Site | null>(null);
 
   async function load() {
     setLoading(true);
-    const { data, error } = await sb.from('sites')
+    const { data, error } = await sb
+      .from('sites')
       .select('*')
       .order('archived', { ascending: true })
       .order('title', { ascending: true });
@@ -51,9 +69,7 @@ export default function SiteExplorer() {
       .filter(s => (showArchived ? true : !s.archived))
       .filter(s => {
         if (!needle) return true;
-        const hay = [
-          s.title, s.address, s.employer, s.contact_name, s.contact_phone, s.notes
-        ].join(' ').toLowerCase();
+        const hay = [s.title, s.address].join(' ').toLowerCase();
         return hay.includes(needle);
       });
   }, [sites, q, showArchived]);
@@ -72,9 +88,26 @@ export default function SiteExplorer() {
     // Normalize lat/lng from string inputs
     const payload: any = {
       ...site,
-      latitude: site.latitude === undefined || site.latitude === null || site.latitude === ('' as any) ? null : Number(site.latitude),
-      longitude: site.longitude === undefined || site.longitude === null || site.longitude === ('' as any) ? null : Number(site.longitude),
+      latitude:
+        site.latitude === undefined ||
+        site.latitude === null ||
+        (site.latitude as any) === ''
+          ? null
+          : Number(site.latitude),
+      longitude:
+        site.longitude === undefined ||
+        site.longitude === null ||
+        (site.longitude as any) === ''
+          ? null
+          : Number(site.longitude),
+      // normalize empties to null for optional text fields
+      address: site.address?.trim() || null,
+      employer: site.employer?.trim() || null,
+      maps_url: site.maps_url?.trim() || null,
+      vat: site.vat?.trim() || null,             // NEW
+      tax_office: site.tax_office?.trim() || null // NEW
     };
+
     if (!payload.title?.trim()) return alert('Title is required');
 
     if (site.id) {
@@ -106,12 +139,21 @@ export default function SiteExplorer() {
 
   return (
     <div className="grid">
-      <div className="card" style={{ position:'sticky', top:0 }}>
-        <h2 style={{marginTop:4, marginBottom:8}}>Site Explorer</h2>
-        <div style={{display:'flex', gap:8, alignItems:'center', flexWrap:'wrap'}}>
-          <input placeholder="Search sites…" value={q} onChange={e=>setQ(e.target.value)} style={{flex:1, minWidth:200}} />
-          <label style={{display:'flex', alignItems:'center', gap:6}}>
-            <input type="checkbox" checked={showArchived} onChange={(e)=>setShowArchived(e.target.checked)} />
+      <div className="card" style={{ position: 'sticky', top: 0 }}>
+        <h2 style={{ marginTop: 4, marginBottom: 8 }}>Site Explorer</h2>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            placeholder="Search sites…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            style={{ flex: 1, minWidth: 200 }}
+          />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={showArchived}
+              onChange={(e) => setShowArchived(e.target.checked)}
+            />
             Show archived
           </label>
           <button onClick={startAdd}>+ Add Site</button>
@@ -120,85 +162,149 @@ export default function SiteExplorer() {
 
       {loading && <div className="card">Loading…</div>}
 
-      {!loading && filtered.map(site => (
-        <div className="card" key={site.id}>
-          <div style={{display:'flex', justifyContent:'space-between', gap:12, alignItems:'start'}}>
-            <div style={{minWidth:0}}>
-              <div style={{display:'flex', alignItems:'center', gap:8}}>
-                <strong>{site.title}</strong>
-                {site.archived ? <span className="badge">Archived</span> : null}
+      {!loading &&
+        filtered.map((site) => (
+          <div className="card" key={site.id}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+              {/* COMPACT: name + address only */}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <strong className="truncate">{site.title}</strong>
+                  {site.archived ? <span className="badge">Archived</span> : null}
+                </div>
+                {site.address && (
+                  <div className="truncate" style={{ color: 'var(--muted)', maxWidth: 640 }}>
+                    {site.address}
+                  </div>
+                )}
               </div>
-              {site.address && <div style={{color:'var(--muted)'}}>{site.address}</div>}
-              <div style={{display:'flex', gap:10, flexWrap:'wrap', marginTop:6}}>
-                {site.employer && <span className="badge">Employer: {site.employer}</span>}
-                {site.contact_name && <span className="badge">Contact: {site.contact_name}</span>}
-                {site.contact_phone && <span className="badge">{site.contact_phone}</span>}
-                {(site.latitude != null && site.longitude != null) && <span className="badge">Pin: {site.latitude}, {site.longitude}</span>}
-                {site.start_date && <span className="badge">Start: {site.start_date}</span>}
-                {site.end_date && <span className="badge">End: {site.end_date}</span>}
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                {site.maps_url && (
+                  <a href={site.maps_url} target="_blank" rel="noreferrer">
+                    <button>Open Map</button>
+                  </a>
+                )}
+                <button onClick={() => startEdit(site)}>Edit</button>
+                <button onClick={() => toggleArchive(site)}>
+                  {site.archived ? 'Unarchive' : 'Archive'}
+                </button>
+                <button onClick={() => remove(site.id)} style={{ borderColor: 'crimson', color: 'crimson' }}>
+                  Delete
+                </button>
               </div>
-            </div>
-            <div style={{display:'flex', gap:8}}>
-              {site.maps_url && <a href={site.maps_url} target="_blank" rel="noreferrer"><button>Open Map</button></a>}
-              <button onClick={()=>startEdit(site)}>Edit</button>
-              <button onClick={()=>toggleArchive(site)}>{site.archived ? 'Unarchive' : 'Archive'}</button>
-              <button onClick={()=>remove(site.id)} style={{borderColor:'crimson', color:'crimson'}}>Delete</button>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
 
       {editing && (
         <div className="card">
           <h3>{editing.id ? 'Edit Site' : 'Add Site'}</h3>
-          <div className="grid" style={{gridTemplateColumns:'repeat(auto-fit, minmax(220px,1fr))'}}>
+          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))' }}>
             <div>
               <label>Title *</label>
-              <input value={editing.title || ''} onChange={e=>setEditing({...editing, title: e.target.value})}/>
+              <input
+                value={editing.title || ''}
+                onChange={(e) => setEditing({ ...editing, title: e.target.value })}
+              />
             </div>
             <div>
               <label>Employer</label>
-              <input value={editing.employer || ''} onChange={e=>setEditing({...editing, employer: e.target.value})}/>
+              <input
+                value={editing.employer || ''}
+                onChange={(e) => setEditing({ ...editing, employer: e.target.value })}
+              />
             </div>
             <div>
               <label>Contact name</label>
-              <input value={editing.contact_name || ''} onChange={e=>setEditing({...editing, contact_name: e.target.value})}/>
+              <input
+                value={editing.contact_name || ''}
+                onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })}
+              />
             </div>
             <div>
               <label>Contact phone</label>
-              <input value={editing.contact_phone || ''} onChange={e=>setEditing({...editing, contact_phone: e.target.value})}/>
+              <input
+                value={editing.contact_phone || ''}
+                onChange={(e) => setEditing({ ...editing, contact_phone: e.target.value })}
+              />
             </div>
-            <div style={{gridColumn:'1/-1'}}>
+            <div style={{ gridColumn: '1/-1' }}>
               <label>Address</label>
-              <input value={editing.address || ''} onChange={e=>setEditing({...editing, address: e.target.value})}/>
+              <input
+                value={editing.address || ''}
+                onChange={(e) => setEditing({ ...editing, address: e.target.value })}
+              />
             </div>
             <div>
               <label>Latitude</label>
-              <input inputMode="decimal" value={editing.latitude ?? ''} onChange={e=>setEditing({...editing, latitude: e.target.value as any})}/>
+              <input
+                inputMode="decimal"
+                value={editing.latitude ?? ''}
+                onChange={(e) => setEditing({ ...editing, latitude: e.target.value as any })}
+              />
             </div>
             <div>
               <label>Longitude</label>
-              <input inputMode="decimal" value={editing.longitude ?? ''} onChange={e=>setEditing({...editing, longitude: e.target.value as any})}/>
+              <input
+                inputMode="decimal"
+                value={editing.longitude ?? ''}
+                onChange={(e) => setEditing({ ...editing, longitude: e.target.value as any })}
+              />
             </div>
-            <div style={{gridColumn:'1/-1'}}>
+
+            <div style={{ gridColumn: '1/-1' }}>
               <label>Google Maps URL (optional)</label>
-              <input value={editing.maps_url || ''} onChange={e=>setEditing({...editing, maps_url: e.target.value})}/>
+              <input
+                value={editing.maps_url || ''}
+                onChange={(e) => setEditing({ ...editing, maps_url: e.target.value })}
+              />
+            </div>
+
+            {/* NEW FIELDS right after Maps URL */}
+            <div>
+              <label>VAT</label>
+              <input
+                value={editing.vat || ''}
+                onChange={(e) => setEditing({ ...editing, vat: e.target.value })}
+              />
             </div>
             <div>
+              <label>Tax Office</label>
+              <input
+                value={editing.tax_office || ''}
+                onChange={(e) => setEditing({ ...editing, tax_office: e.target.value })}
+              />
+            </div>
+
+            <div>
               <label>Start date</label>
-              <input type="date" value={editing.start_date || ''} onChange={e=>setEditing({...editing, start_date: e.target.value})}/>
+              <input
+                type="date"
+                value={editing.start_date || ''}
+                onChange={(e) => setEditing({ ...editing, start_date: e.target.value })}
+              />
             </div>
             <div>
               <label>End date</label>
-              <input type="date" value={editing.end_date || ''} onChange={e=>setEditing({...editing, end_date: e.target.value})}/>
+              <input
+                type="date"
+                value={editing.end_date || ''}
+                onChange={(e) => setEditing({ ...editing, end_date: e.target.value })}
+              />
             </div>
-            <div style={{gridColumn:'1/-1'}}>
+            <div style={{ gridColumn: '1/-1' }}>
               <label>Notes</label>
-              <textarea rows={3} value={editing.notes || ''} onChange={e=>setEditing({...editing, notes: e.target.value})}/>
+              <textarea
+                rows={3}
+                value={editing.notes || ''}
+                onChange={(e) => setEditing({ ...editing, notes: e.target.value })}
+              />
             </div>
-            <div style={{display:'flex', gap:8, gridColumn:'1/-1', justifyContent:'flex-end'}}>
+            <div style={{ display: 'flex', gap: 8, gridColumn: '1/-1', justifyContent: 'flex-end' }}>
               <button onClick={cancelEdit}>Cancel</button>
-              <button onClick={()=>save(editing!)}>Save</button>
+              <button onClick={() => save(editing!)}>Save</button>
             </div>
           </div>
         </div>
