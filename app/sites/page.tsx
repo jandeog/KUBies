@@ -23,12 +23,15 @@ type Site = {
   updated_at?: string;
 };
 
-const sb = supabaseBrowser();
 
 const [hoveredId, setHoveredId] = useState<string | null>(null);
+if (typeof window === 'undefined') {
+  // avoid any side-effects during export SSR
+}
 
 export default function SiteExplorer() {
   const [sites, setSites] = useState<Site[]>([]);
+  const sb = useMemo(() => supabaseBrowser(), []);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [showArchived, setShowArchived] = useState(false);
