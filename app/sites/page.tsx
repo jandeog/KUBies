@@ -25,6 +25,8 @@ type Site = {
 
 const sb = supabaseBrowser();
 
+const [hoveredId, setHoveredId] = useState<string | null>(null);
+
 export default function SiteExplorer() {
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,41 +164,72 @@ export default function SiteExplorer() {
 
       {loading && <div className="card">Loading…</div>}
 
-      {!loading &&
-        filtered.map((site) => (
-          <div className="card" key={site.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
-              {/* COMPACT: name + address only */}
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <strong className="truncate">{site.title}</strong>
-                  {site.archived ? <span className="badge">Archived</span> : null}
-                </div>
-                {site.address && (
-                  <div className="truncate" style={{ color: 'var(--muted)', maxWidth: 640 }}>
-                    {site.address}
-                  </div>
-                )}
-              </div>
+{!loading && filtered.map(site => (
+  <div
+    className="card cursor-pointer"
+    key={site.id}
+    onMouseEnter={() => setHoveredId(site.id!)}
+    onMouseLeave={() => setHoveredId(null)}
+    onClick={() => startEdit(site)} // whole row opens the inline editor
+    style={{
+      backgroundColor: hoveredId === site.id ? 'rgba(16, 185, 129, 0.12)' : undefined,
+      transition: 'background-color 120ms ease-in-out'
+    }}
+  >
+    <div style={{display:'flex', justifyContent:'space-between', gap:12, alignItems:'start'}}>
+      <div style={{minWidth:0}}>
+        <div style={{display:'flex', alignItems:'center', gap:8}}>
+          <strong>{site.title}</strong>
+          {site.archived ? <span className="badge">Archived</span> : null}
+        </div>
+        {site.address && <div style={{color:'var(--muted)'}}>{site.address}</div>}
+        {/* keep or remove your extra badges as you prefer */}
+      </div>
 
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                {site.maps_url && (
-                  <a href={site.maps_url} target="_blank" rel="noreferrer">
-                    <button>Open Map</button>
-                  </a>
-                )}
-                <button onClick={() => startEdit(site)}>Edit</button>
-                <button onClick={() => toggleArchive(site)}>
-                  {site.archived ? 'Unarchive' : 'Archive'}
-                </button>
-                <button onClick={() => remove(site.id)} style={{ borderColor: 'crimson', color: 'crimson' }}>
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div style={{display:'flex', gap:8}}>
+        {site.maps_url && (
+          <a
+            href={site.maps_url}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()} // don't trigger row click
+          >
+            <button>Open Map</button>
+          </a>
+        )}
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            startEdit(site);
+          }}
+        >
+          Edit
+        </button>
+
+        <button
+          onClick={async (e) => {
+            e.stopPropagation();
+            await toggleArchive(site);
+          }}
+        >
+          {site.archived ? 'Unarchive' : 'Archive'}
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            remove(site.id);
+          }}
+          style={{borderColor:'crimson', color:'crimson'}}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+))}
+
 
       {editing && (
         <div className="card">
@@ -262,37 +295,51 @@ export default function SiteExplorer() {
               />
             </div>
 
-            {/* NEW FIELDS right after Maps URL */}
-            <div>
-              <label>VAT</label>
-              <input
-                value={editing.vat || ''}
-                onChange={(e) => setEditing({ ...editing, vat: e.target.value })}
-              />
-            </div>
-            <div>
-              <label>Tax Office</label>
-              <input
-                value={editing.tax_office || ''}
-                onChange={(e) => setEditing({ ...editing, tax_office: e.target.value })}
-              />
-            </div>
+            {/* VAT */}
+<div>
+  <label>VAT</label>
+  <input
+    value={editing.vat || ''}
+    onChange={(e) => setEditing({ ...editing, vat: e.target.value })}
+  />
+</div>
 
-            <div>
-              <label>Start date</label>
-              <input
-                type="date"
-                value={editing.start_date || ''}
-                onChange={(e) => setEditing({ ...editing, start_date: e.target.value })}
-              />
-            </div>
-            <div>
-              <label>End date</label>
-              <input
-                type="date"
-                value={editing.end_date || ''}
-                onChange={(e) => setEditing({ ...editing, end_date: e.target.value })}
-              />
+{/* Tax Office */}
+<div>
+  <label>Tax Office</label>
+  <input
+    value={editing.tax_office || ''}
+    onChange={(e) => setEditing({ ...editing, tax_office: e.target.value })}
+  />
+</div>
+
+{/* NEW: Dates on the next line */}
+<div
+  style={{
+    gridColumn: '1 / -1', // force a new full-width row
+    display: 'grid',
+    gap: 16,
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  }}
+>
+  <div>
+    <label>Start date</label>
+    <input
+      type="date"
+      value={editing.start_date || ''}
+      onChange={(e) => setEditing({ ...editing, start_date: e.target.value })}
+    />
+  </div>
+
+  <div>
+    <label>End date</label>
+    <input
+      type="date"
+      value={editing.end_date || ''}
+      onChange={(e) => setEditing({ ...editing, end_date: e.target.value })}
+    />
+  </div>
+
             </div>
             <div style={{ gridColumn: '1/-1' }}>
               <label>Notes</label>
