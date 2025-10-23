@@ -105,3 +105,16 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
 .menu-item { text-align:left; cursor:pointer; }
 .menu-item.active { font-weight:700; box-shadow: inset 0 1px 0 rgba(0,0,0,.04); }
 
+/* --- Blank Home --- */
+.home-blank {
+  min-height: 100dvh;           /* γεμίζει όλο το ύψος του viewport */
+  display: grid;                /* απλό centering */
+  place-items: center;          /* οριζόντια + κάθετα στο κέντρο */
+  padding: 16px;                /* λίγο αέρας */
+}
+.home-title {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
