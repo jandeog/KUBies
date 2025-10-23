@@ -118,3 +118,13 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   letter-spacing: 0.5px;
   text-align: center;
 }
+.settings-form { display: grid; gap: 12px; max-width: 560px; }
+.field { display: grid; gap: 6px; }
+.label { font-weight: 600; }
+.input {
+  padding: 10px 12px; border: 1px solid var(--border, rgba(0,0,0,.15));
+  border-radius: 10px; background: transparent;
+}
+.actions { margin-top: 8px; }
+.ok { margin-top: 8px; color: #0a7f24; }
+.error { margin-top: 8px; color: #b00020; }
