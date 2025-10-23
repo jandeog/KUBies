@@ -1,21 +1,24 @@
 'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function HeaderClient() {
-  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const [theme, setTheme] = useState<'system'|'light'|'dark'>('system');
 
   // Initialize theme from localStorage / system
   useEffect(() => {
-    const saved = (localStorage.getItem('theme') as any) || 'system';
+    const saved = (localStorage.getItem('theme') as 'system'|'light'|'dark') || 'system';
     applyTheme(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function applyTheme(next: 'system'|'light'|'dark') {
     setTheme(next);
     localStorage.setItem('theme', next);
     const root = document.documentElement;
-    // reset classes
     root.classList.remove('light', 'dark');
     if (next === 'dark') root.classList.add('dark');
     if (next === 'light') root.classList.add('light');
@@ -26,27 +29,47 @@ export default function HeaderClient() {
     window.location.href = '/login';
   }
 
-  return (
-    <div style={{ position:'relative', display:'flex', alignItems:'center', gap:8 }}>
-      {/* Theme toggle cycles system -> dark -> light */}
-      <button className="toggle" title={`Theme: ${theme}`} onClick={()=>{
-        const order: ('system'|'dark'|'light')[] = ['system','dark','light'];
-        const next = order[(order.indexOf(theme)+1)%order.length];
-        applyTheme(next);
-      }}>
-        🌓 <span className="badge">{theme}</span>
-      </button>
+  const items = [
+    { href: '/', label: 'Home' },
+    { href: '/site-diary', label: 'Site Diary' },
+    { href: '/sites', label: 'Site Explorer' },
+    { href: '/settings', label: 'Settings' },
+  ];
 
-      {/* Hamburger menu */}
-      <button className="kebab" aria-label="Menu" onClick={()=>setOpen(v=>!v)}>☰</button>
-      {open && (
-        <div className="menu" onMouseLeave={()=>setOpen(false)}>
-          <a href="/">🏠 Home</a>
-          <a href="/">📒 Site Diary</a>
-              <a href="/sites">🗂️ Site Explorer</a>
-          <button onClick={logout}>🚪 Logout</button>
-        </div>
-      )}
+  return (
+    <div className="header-wrap">
+      <nav className="nav">
+        {items.map(({ href, label }) => {
+          const active = pathname === href || (href !== '/' && pathname?.startsWith(href));
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`nav-link${active ? ' active' : ''}`}
+            >
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="actions">
+        <button
+          className="toggle"
+          title={`Theme: ${theme}`}
+          onClick={() => {
+            const order: ('system'|'dark'|'light')[] = ['system', 'dark', 'light'];
+            const next = order[(order.indexOf(theme) + 1) % order.length];
+            applyTheme(next);
+          }}
+        >
+          🌓 <span className="badge">{theme}</span>
+        </button>
+
+        <button className="nav-link" onClick={logout}>
+          Logout
+        </button>
+      </div>
     </div>
   );
 }
