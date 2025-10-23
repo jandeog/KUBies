@@ -64,9 +64,24 @@ export function SelectTrigger({
   );
 }
 
-export function SelectContent({ children }: { children: React.ReactNode }) {
-  // Not needed with native <select>, but kept for API parity
-  return <div style={{ display: 'none' }}>{children}</div>;
+export function SelectContent({
+  children,
+  className = '',
+  ...rest
+}: {
+  children: React.ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  // Στο native <select> δεν χρειάζεται dropdown — κρατάμε hidden wrapper για API parity
+  return (
+    <div
+      style={{ display: 'none' }}
+      className={className}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function SelectItem({
@@ -85,7 +100,18 @@ export function SelectItem({
 }
 SelectItem.displayName = 'SelectItem';
 
-export function SelectValue({ placeholder }: { placeholder?: string }) {
-  // Placeholder is not used in native select; keeping for API parity
-  return <span className="sr-only">{placeholder}</span>;
+export function SelectValue({
+  placeholder,
+  className = '',
+  ...rest
+}: {
+  placeholder?: string;
+  className?: string;
+} & React.HTMLAttributes<HTMLSpanElement>) {
+  // Placeholder δεν χρησιμοποιείται από το native select — κρατάμε span για API parity
+  return (
+    <span className={`sr-only ${className}`} {...rest}>
+      {placeholder}
+    </span>
+  );
 }
