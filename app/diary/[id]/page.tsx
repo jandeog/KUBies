@@ -85,7 +85,12 @@ function wmoToText(code?: number) {
   return code != null ? (map[code] || `Code ${code}`) : '—';
 }
 
-export default function DiaryView({ params }: { params: { id: string } }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const { theme } = useTheme();
   const [diary, setDiary] = useState<Diary | null>(null);
   const [sites, setSites] = useState<Site[]>([]);
