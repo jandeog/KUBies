@@ -1,4 +1,3 @@
-// app/diary/[id]/page.tsx
 import DiaryClient from './DiaryClient';
 
 export default async function Page({
