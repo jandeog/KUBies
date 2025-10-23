@@ -80,3 +80,28 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   font-weight: 700;
   box-shadow: 0 1px 0 rgba(0,0,0,.04) inset;
 }
+/* Header + Hamburger text-only menu */
+.header-wrap { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.brand-link { font-weight:700; text-decoration:none; }
+.menu-wrap { position:relative; }
+.nav-link, .menu-item, .menu-btn {
+  padding:8px 10px;
+  border-radius:10px;
+  text-decoration:none;
+  border:1px solid var(--border, rgba(0,0,0,.15));
+  background: transparent;
+  font: inherit;
+}
+.menu-btn { cursor:pointer; }
+.menu-panel {
+  position:absolute; right:0; top:42px; z-index:50;
+  min-width:220px; padding:8px;
+  border:1px solid var(--border, rgba(0,0,0,.15));
+  border-radius:12px; background: var(--panel-bg, #fff);
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+:root.dark .menu-panel { --panel-bg: #111; }
+.menu-section { display:flex; flex-direction:column; gap:6px; padding:6px; }
+.menu-item { text-align:left; cursor:pointer; }
+.menu-item.active { font-weight:700; box-shadow: inset 0 1px 0 rgba(0,0,0,.04); }
+
