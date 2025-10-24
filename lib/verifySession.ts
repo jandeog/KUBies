@@ -20,3 +20,5 @@ export function decodeSessionToken(token: string): { id?: string; username?: str
     return null;
   }
 }
+
+export const verifySessionToken = decodeSessionToken;
