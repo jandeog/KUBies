@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabaseBrowser } from '@/lib/supabase-browser';
 import { Button } from '@/components/ui/button';
 
 type AppUser = {
@@ -11,8 +10,6 @@ type AppUser = {
   email: string | null;
   phone_number: string | null;
 };
-
-const sb = supabaseBrowser();
 
 export default function SettingsClient() {
   const [loading, setLoading] = useState(true);
@@ -29,60 +26,24 @@ export default function SettingsClient() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      setError(null);
-      setOk(null);
+      setError(null); setOk(null);
 
-      // 1) Πάρε τον συνδεδεμένο χρήστη από Supabase Auth
-      const { data: userRes, error: userErr } = await sb.auth.getUser();
-      if (userErr || !userRes?.user) {
-        setError('Δεν βρέθηκε ενεργό login. Κάνε login και ξαναπροσπάθησε.');
+      const res = await fetch('/api/me', { cache: 'no-store' });
+      if (!res.ok) {
+        setError('Δεν υπάρχει ενεργό login.');
         setLoading(false);
         return;
       }
-      const authUser = userRes.user;
-
-      // 2) Διάβασε το row από app_users
-      //    Προσπαθούμε πρώτα με id == auth.uid(), μετά με email == auth.email,
-      //    μετά με username == auth.email (fallback για παλαιότερα setups).
-      let row: AppUser | null = null;
-
-      {
-        const { data } = await sb
-          .from('app_users')
-          .select('id,username,name,email,phone_number')
-          .eq('id', authUser.id)
-          .maybeSingle();
-        if (data) row = data as AppUser;
-      }
-      if (!row && authUser.email) {
-        const { data } = await sb
-          .from('app_users')
-          .select('id,username,name,email,phone_number')
-          .eq('email', authUser.email)
-          .maybeSingle();
-        if (data) row = data as AppUser;
-      }
-      if (!row && authUser.email) {
-        const { data } = await sb
-          .from('app_users')
-          .select('id,username,name,email,phone_number')
-          .eq('username', authUser.email)
-          .maybeSingle();
-        if (data) row = data as AppUser;
-      }
-
+      const json = await res.json();
+      const row = json?.user as AppUser | null;
       if (!row) {
-        setError(
-          'Δεν βρέθηκε εγγραφή στο app_users για τον λογαριασμό σου. ' +
-          'Επικοινώνησε με admin για να συνδέσει τον χρήστη με τον πίνακα app_users.'
-        );
+        setError('Δεν βρέθηκε χρήστης.');
         setLoading(false);
         return;
       }
-
       setProfile(row);
       setName(row.name || '');
-      setEmail(row.email || authUser.email || '');
+      setEmail(row.email || '');
       setPhone(row.phone_number || '');
       setLoading(false);
     })();
@@ -91,38 +52,28 @@ export default function SettingsClient() {
   async function onSave() {
     if (!profile) return;
     setSaving(true);
-    setError(null);
-    setOk(null);
+    setError(null); setOk(null);
+
     try {
-      // Αν θέλεις basic validation:
       if (!email.trim()) throw new Error('Το email είναι υποχρεωτικό.');
-
-      const { error: upErr } = await sb
-        .from('app_users')
-        .update({
-          name: name || null,
-          email: email || null,
-          phone_number: phone || null,
-        })
-        .eq('id', profile.id);
-
-      if (upErr) throw upErr;
-
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name, email, phone_number: phone }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || 'Αποτυχία αποθήκευσης.');
       setOk('Αποθηκεύτηκαν οι αλλαγές.');
-      setProfile({ ...profile, name: name || null, email: email || null, phone_number: phone || null });
-    } catch (e: any) {
-      setError(e?.message || 'Αποτυχία αποθήκευσης.');
+      setProfile({ ...profile, name, email, phone_number: phone });
+    } catch (e:any) {
+      setError(e.message);
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) {
-    return <div className="muted">Φόρτωση…</div>;
-  }
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
+  if (loading) return <div className="muted">Φόρτωση…</div>;
+  if (error) return <div className="error">{error}</div>;
   if (!profile) return null;
 
   return (
@@ -135,36 +86,17 @@ export default function SettingsClient() {
     >
       <div className="field">
         <label className="label">Name</label>
-        <input
-          className="input"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Πλήρες όνομα"
-        />
+        <input className="input" value={name} onChange={(e)=>setName(e.target.value)} />
       </div>
 
       <div className="field">
         <label className="label">Email</label>
-        <input
-          className="input"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.currentTarget.value)}
-          placeholder="name@example.com"
-          required
-        />
+        <input className="input" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} required />
       </div>
 
       <div className="field">
         <label className="label">Phone number</label>
-        <input
-          className="input"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.currentTarget.value)}
-          placeholder="+30 69..."
-        />
+        <input className="input" type="tel" value={phone} onChange={(e)=>setPhone(e.target.value)} />
       </div>
 
       <div className="actions">
