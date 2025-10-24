@@ -61,6 +61,7 @@ export default function HeaderClient() {
     { href: '/', label: 'Home' },
     { href: '/site-diary', label: 'Site Diary' },
     { href: '/sites', label: 'Site Explorer' },
+    { href: '/subbies', label: 'Subbie-Supplier' },
     { href: '/settings', label: 'Settings' },
   ];
 
