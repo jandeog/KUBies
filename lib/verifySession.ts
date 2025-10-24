@@ -1,24 +1,40 @@
 // lib/verifySession.ts
-// Tries to VERIFY the token if SESSION_SECRET is set; otherwise safely DECODES it (no verify).
-// Your payload example shows: { sub: "<uuid>", username: "...", role: "admin", iat, exp }
+// Lightweight decoder for a JWT (no signature verification), suitable for your custom cookie.
+// Extracts { id, username } from the payload where "sub" is the UUID user id.
 
-type Decoded = { sub?: string; username?: string; [k: string]: any };
+export type SessionIdentity = { id?: string; username?: string; role?: string };
 
 function base64urlToJson<T = any>(b64url: string): T {
+  // normalize base64url → base64
   const pad = (s: string) => s + '==='.slice((s.length + 3) % 4);
-  const str = Buffer.from(pad(b64url).replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
-  return JSON.parse(str);
+  const b64 = pad(b64url).replace(/-/g, '+').replace(/_/g, '/');
+  const json = Buffer.from(b64, 'base64').toString('utf8');
+  return JSON.parse(json);
 }
 
-export function decodeSessionToken(token: string): { id?: string; username?: string } | null {
+function stripWrapperQuotes(s: string) {
+  // handle cases where the cookie is accidentally stored with surrounding quotes
+  return s.replace(/^"+|"+$/g, '').replace(/^Bearer\s+/i, '');
+}
+
+export function decodeSessionToken(rawToken: string | undefined | null): SessionIdentity | null {
+  if (!rawToken) return null;
   try {
-    const [, payload] = token.split('.');
-    if (!payload) return null;
-    const data = base64urlToJson<Decoded>(payload);
-    return { id: data.sub, username: data.username };
+    const token = stripWrapperQuotes(rawToken);
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const payload = base64urlToJson<any>(parts[1]);
+
+    const id = payload?.sub ?? payload?.id ?? undefined;
+    const username = payload?.username ?? payload?.email ?? undefined;
+    const role = payload?.role ?? undefined;
+
+    if (!id && !username) return null;
+    return { id, username, role };
   } catch {
     return null;
   }
 }
 
+// Backward-compatible alias if you previously imported this name:
 export const verifySessionToken = decodeSessionToken;
