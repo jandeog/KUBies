@@ -84,14 +84,14 @@ const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell
         {/* RIGHT side */}
 
 
-    <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
+<div className="partner-actions" onClick={(e) => e.stopPropagation()}>
   {/* PHONE */}
   {numbers.length > 0 && (
-    <div className="menu">
+    <div className="partner-menu">
       <button className="action-btn" aria-label="Call">
         <Phone className="w-4 h-4" />
       </button>
-      <div className="partner-popup">
+      <div className="partner-flyout">
         {numbers.map((num) => (
           <button key={num} onClick={() => window.location.assign(`tel:${num}`)}>
             {num}
@@ -103,11 +103,11 @@ const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell
 
   {/* EMAIL */}
   {p.email && (
-    <div className="menu">
+    <div className="partner-menu">
       <button className="action-btn" aria-label="Email">
         <Mail className="w-4 h-4" />
       </button>
-      <div className="partner-popup">
+      <div className="partner-flyout">
         <button onClick={() => window.location.assign(`mailto:${p.email}`)}>
           {p.email}
         </button>
@@ -117,12 +117,12 @@ const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell
 
   {/* MAPS */}
   {p.google_maps_url && (
-    <div className="menu">
+    <div className="partner-menu">
       <button className="action-btn" aria-label="Navigate">
         <Navigation className="w-4 h-4" />
       </button>
       {p.address && (
-        <div className="partner-popup" style={{ maxWidth: 260 }}>
+        <div className="partner-flyout" style={{ maxWidth: 260 }}>
           <button onClick={() => window.open(p.google_maps_url!, "_blank")}>
             {p.address}
           </button>
@@ -131,6 +131,7 @@ const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell
     </div>
   )}
 </div>
+
 
 
 
