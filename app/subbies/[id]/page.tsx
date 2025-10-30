@@ -57,9 +57,9 @@ export default function PartnerEditorPage() {
 
   React.useEffect(() => {
     (async () => {
-      // fetch specialties for datalist
-      const { data: all, error: e1 } = await supabase.from("partners").select("specialty");
-      if (!e1 && all) {
+      // specialties for datalist
+      const { data: all } = await supabase.from("partners").select("specialty");
+      if (all) {
         const set = new Set<string>();
         all.forEach((r: any) => {
           const s = (r.specialty || "").trim();
@@ -69,16 +69,14 @@ export default function PartnerEditorPage() {
       }
 
       if (!isNew) {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("partners")
           .select(
             "id, company, contact_last_name, contact_first_name, specialty, email, phone_business, phone_cell, address, google_maps_url"
           )
           .eq("id", params.id)
           .single();
-        if (error) {
-          console.error(error);
-        } else if (data) {
+        if (data) {
           setForm({
             id: data.id,
             company: data.company ?? "",
@@ -105,7 +103,6 @@ export default function PartnerEditorPage() {
     }
     setSaving(true);
 
-    // Build payload with nulls for blanks
     const payload = {
       company: form.company.trim(),
       contact_last_name: clean(form.contact_last_name),
@@ -125,7 +122,24 @@ export default function PartnerEditorPage() {
     setSaving(false);
     if (error) {
       console.error(error);
-      alert("Save failed. See console for details.");
+      alert("Save failed.");
+      return;
+    }
+    router.push("/subbies");
+  }
+
+  async function onDelete() {
+    if (isNew || !form.id) {
+      router.push("/subbies");
+      return;
+    }
+    if (!confirm("Delete this entry? This cannot be undone.")) return;
+    setSaving(true);
+    const { error } = await supabase.from("partners").delete().eq("id", form.id);
+    setSaving(false);
+    if (error) {
+      console.error(error);
+      alert("Delete failed.");
       return;
     }
     router.push("/subbies");
@@ -140,6 +154,15 @@ export default function PartnerEditorPage() {
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}</h1>
         <div className="flex gap-2">
+          {!isNew && (
+            <Button
+              onClick={onDelete}
+              style={{ background: "#7f0a0a", color: "white", borderColor: "#7f0a0a" }}
+              disabled={saving}
+            >
+              Delete
+            </Button>
+          )}
           <Button onClick={onCancel} variant="ghost">Cancel</Button>
           <Button onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
         </div>
@@ -244,6 +267,16 @@ export default function PartnerEditorPage() {
           </div>
 
           <div className="md:col-span-2 flex gap-2 justify-end">
+            {!isNew && (
+              <Button
+                type="button"
+                onClick={onDelete}
+                style={{ background: "#7f0a0a", color: "white", borderColor: "#7f0a0a" }}
+                disabled={saving}
+              >
+                Delete
+              </Button>
+            )}
             <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
             <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
           </div>

@@ -181,3 +181,14 @@ label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
 .select--dark::-webkit-scrollbar-track { background: #000; }
 .select--dark::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 6px; }
 .partners-list { margin-top: 8px; }
+
+/* ===== Mobile tweaks (≤ 640px) ===== */
+@media (max-width: 640px) {
+  .partner-row { padding: 8px 10px; }
+  .partner-company { max-width: 62vw; font-size: 0.95rem; }
+  .partner-name { display: none; }            /* hide second line to save space */
+  .partner-actions { gap: 4px; }
+  .action-btn { width: 32px; height: 28px; }  /* smaller buttons */
+  .partner-flyout { right: -2px; top: calc(100% + 3px); min-width: 150px; }
+}
+
