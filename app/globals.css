@@ -127,16 +127,41 @@ label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
 .partner-flyout button:hover{background:rgba(10,127,36,.25);color:#fff}
-/* Dark native <select> (field + popup) */
-.select--dark {
-  background-color: #000 !important;
-  color: #fff !important;
+/* Theme-aware native <select> for the Specialty filter */
+.select-theme {
   border: 1px solid var(--border);
   border-radius: 10px;
-  appearance: none;          /* avoid UA theming that turns it light */
-  color-scheme: dark;        /* hint dark UI for the popup */
-  padding-right: 34px;       /* room for native arrow */
+  padding: 10px 12px;
+  appearance: auto;            /* keep native arrow */
 }
+
+/* Dark theme: black popup, white text */
+:root.dark .select-theme {
+  background-color: #000;
+  color: #fff;
+  color-scheme: dark;
+}
+:root.dark .select-theme option,
+:root.dark .select-theme optgroup {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Light / system-light: white popup, dark text */
+:root.light .select-theme,
+:root:not(.dark):not(.light) .select-theme {
+  background-color: #fff;
+  color: #111;
+  color-scheme: light;
+}
+:root.light .select-theme option,
+:root.light .select-theme optgroup,
+:root:not(.dark):not(.light) .select-theme option,
+:root:not(.dark):not(.light) .select-theme optgroup {
+  background-color: #fff;
+  color: #111;
+}
+
 
 /* Popup list items */
 .select--dark option,
@@ -155,3 +180,4 @@ label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
 .select--dark::-webkit-scrollbar { width: 10px; }
 .select--dark::-webkit-scrollbar-track { background: #000; }
 .select--dark::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 6px; }
+.partners-list { margin-top: 8px; }

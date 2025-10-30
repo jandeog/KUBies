@@ -91,22 +91,23 @@ export default function SubbieSupplierPage() {
   />
 
   {/* ONE select only */}
-  <select
-    className="select--dark"
-    value={specialtyFilter}
-    onChange={(e) => setSpecialtyFilter(e.target.value)}
-    aria-label="Specialty"
-  >
-    {specialties.map((s) => (
-      <option key={s} value={s === "All" ? "" : s}>
-        {s}
-      </option>
-    ))}
-  </select>
+<select
+  className="select-theme"
+  value={specialtyFilter}
+  onChange={(e) => setSpecialtyFilter(e.target.value)}
+  aria-label="Specialty"
+>
+  {specialties.map((s) => (
+    <option key={s} value={s === "All" ? "" : s}>
+      {s}
+    </option>
+  ))}
+</select>
 </div>
 
 
       {/* List */}
+      <div className="grid gap-2 partners-list"></div>
       <div className="grid gap-2">
         {loading ? (
           <div className="p-4 opacity-70">Loading…</div>
