@@ -1,360 +1,155 @@
+/* =========================================================
+   Theme tokens
+   ========================================================= */
 :root {
-  --bg: #ffffff;
-  --fg: #111111;
+  --bg:    #ffffff;
+  --fg:    #111111;
   --muted: #666;
-  --card: #f7f7f8;
-  --border: #e5e7eb;
+  --card:  #f7f7f8;
+  --border:#e5e7eb;
+
+  /* Accent used by Site Explorer (deep green) */
+  --accent:       #0a7f24;
+  --accent-ink:   #ffffff;
+  --accent-tint:  rgba(10,127,36,.12); /* hover surface */
 }
 
 :root.dark {
-  --bg: #0b0b0d;
-  --fg: #e7e7ea;
+  --bg:    #0b0b0d;
+  --fg:    #e7e7ea;
   --muted: #a1a1aa;
-  --card: #111215;
-  --border: #26272b;
+  --card:  #111215;
+  --border:#26272b;
+
+  --accent:      #0a7f24;
+  --accent-ink:  #ffffff;
+  --accent-tint: rgba(10,127,36,.14);
 }
 
+/* Respect system dark if user hasn't forced .light */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
     color-scheme: dark;
-    --bg: #0b0b0d;
-    --fg: #e7e7ea;
-    --muted: #a1a1aa;
-    --card: #111215;
-    --border: #26272b;
+    --bg:#0b0b0d; --fg:#e7e7ea; --muted:#a1a1aa; --card:#111215; --border:#26272b;
   }
 }
 
+/* =========================================================
+   Base
+   ========================================================= */
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
-a { color: inherit; }
+html, body { margin:0; padding:0; background:var(--bg); color:var(--fg); }
+a { color:inherit; text-decoration:none; }
+
+/* Generic form controls (kept minimal) */
 button {
-  padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
-  background: transparent; color: var(--fg); cursor: pointer;
+  padding:10px 14px; border-radius:10px; border:1px solid var(--border);
+  background:transparent; color:var(--fg); cursor:pointer;
 }
 input, textarea, select {
-  width: 100%; padding: 10px; border-radius: 10px;
-  border: 1px solid var(--border); background: transparent; color: var(--fg);
+  width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);
+  background:transparent; color:var(--fg);
 }
-label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
-.card {
-  border: 1px solid var(--border); border-radius: 16px; padding: 12px; margin: 12px 0;
-  background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.04);
-}
-.grid { display: grid; gap: 10px; }
-.header {
-  display:flex; justify-content:space-between; align-items:center; gap:8px; padding: 8px 0;
-}
-.brand { font-size: 20px; margin: 0; }
-.kebab {
-  width: 42px; height: 42px; display:inline-flex; align-items:center; justify-content:center;
-  border-radius: 12px; background: transparent;
-}
-.menu {
-  position: absolute; right: 12px; top: 56px; min-width: 200px; padding: 8px;
-  border: 1px solid var(--border); background: var(--card); border-radius: 14px; z-index: 50;
-  box-shadow: 0 6px 24px rgba(0,0,0,.15);
-}
-.menu a, .menu button {
-  display:block; width: 100%; text-align:left; padding:10px 12px; border-radius:10px; border:none;
-  background: transparent;
-}
-.menu a:hover, .menu button:hover { background: rgba(127,127,127,.12); }
-.badge {
-  font-size: 12px; padding: 2px 8px; border:1px solid var(--border); border-radius: 999px; color: var(--muted);
-}
-.toggle {
-  margin-left: 8px; border-radius: 999px; padding: 8px 10px;
-}
-/* Simple text-only top nav */
-.header-wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.actions { display: flex; gap: 8px; align-items: center; }
-.nav-link {
-  padding: 8px 10px;
-  border-radius: 10px;
-  text-decoration: none;
-  border: 1px solid var(--border);
-}
-.nav-link.active {
-  font-weight: 700;
-  box-shadow: 0 1px 0 rgba(0,0,0,.04) inset;
-}
-/* Header + Hamburger text-only menu */
-.header-wrap { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.brand-link { font-weight:700; text-decoration:none; }
-.menu-wrap { position:relative; }
-.nav-link, .menu-item, .menu-btn {
-  padding:8px 10px;
-  border-radius:10px;
-  text-decoration:none;
-  border:1px solid var(--border, rgba(0,0,0,.15));
-  background: transparent;
-  font: inherit;
-}
-.menu-btn { cursor:pointer; }
-.menu-panel {
-  position:absolute; right:0; top:42px; z-index:50;
-  min-width:220px; padding:8px;
-  border:1px solid var(--border, rgba(0,0,0,.15));
-  border-radius:12px; background: var(--panel-bg, #fff);
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
-}
-:root.dark .menu-panel { --panel-bg: #111; }
-.menu-section { display:flex; flex-direction:column; gap:6px; padding:6px; }
-.menu-item { text-align:left; cursor:pointer; }
-.menu-item.active { font-weight:700; box-shadow: inset 0 1px 0 rgba(0,0,0,.04); }
+label { font-weight:600; display:block; margin-top:8px; color:var(--fg); }
 
-/* --- Blank Home --- */
-.home-blank {
-  min-height: 100dvh;           /* γεμίζει όλο το ύψος του viewport */
-  display: grid;                /* απλό centering */
-  place-items: center;          /* οριζόντια + κάθετα στο κέντρο */
-  padding: 16px;                /* λίγο αέρας */
+/* Simple helpers */
+.grid { display:grid; gap:10px; }
+
+/* =========================================================
+   Header + top menus (unchanged behaviour)
+   ========================================================= */
+.header { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; }
+.brand { font-size:20px; margin:0; }
+
+/* Old header menu (kept) */
+.menu {
+  position:absolute; right:12px; top:56px; min-width:200px; padding:8px;
+  border:1px solid var(--border); background:var(--card); border-radius:14px; z-index:50;
+  box-shadow:0 6px 24px rgba(0,0,0,.15);
 }
-.home-title {
-  font-size: clamp(28px, 4vw, 48px);
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-align: center;
-}
-.settings-form { display: grid; gap: 12px; max-width: 560px; }
-.field { display: grid; gap: 6px; }
-.label { font-weight: 600; }
-.input {
-  padding: 10px 12px; border: 1px solid var(--border, rgba(0,0,0,.15));
-  border-radius: 10px; background: transparent;
-}
-.actions { margin-top: 8px; }
-.ok { margin-top: 8px; color: #0a7f24; }
-.error { margin-top: 8px; color: #b00020; }
-/* Add this at the bottom of globals.css */
+.menu a, .menu button { display:block; width:100%; text-align:left; padding:10px 12px; border-radius:10px; border:none; background:transparent; }
+.menu a:hover, .menu button:hover { background:rgba(127,127,127,.12); }
+
+/* =========================================================
+   Compact card row (Site Explorer look)
+   ========================================================= */
 .partner-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card);
-  padding: 10px 14px;
-  transition: background 0.2s, border 0.2s;
-  position: relative;      /* <-- add */
-  overflow: visible;       /* <-- add */
-          /* ensures stacking context without hiding popups */
+  position:relative; overflow:visible;   /* allow flyouts */
+  display:flex; align-items:center; justify-content:space-between;
+  border:1px solid var(--border); border-radius:12px;
+  background:var(--card);
+  padding:10px 14px;
+  transition: background .2s, border-color .2s, box-shadow .2s;
 }
 .partner-row:hover,
 .partner-row:focus-within {
-  z-index: 999; /* any value > 0 works */
+  background: var(--accent-tint);
+  border-color: var(--accent);
+  z-index: 999; /* make sure flyout sits above next slot */
 }
 
-.partner-left {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
+/* Left info */
+.partner-left { flex:1; min-width:0; overflow:hidden; }
 .partner-company {
-  font-weight: 600;
-  color: var(--fg);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 380px;
+  font-weight:600; color:var(--fg);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:420px;
 }
 .partner-name {
-  font-size: 0.875rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 280px;
-}
-.partner-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.partner-actions button {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 6px 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.partner-actions button:hover {
-  background: #0a7f24;
-  color: #fff;
-}
-.partner-popup {
-  opacity: 0;
-  transform: translateY(-2px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-.group:hover .partner-popup {
-  opacity: 1;
-  transform: translateY(0);
-}
-/* Hover menus (phone/email/maps) */
-.menu { position: relative; }
-
-/* hidden by default */
-.partner-popup {
-  display: none;
-  position: absolute; right: 0; top: 36px;
-  min-width: 160px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.25);
-  z-index: 9999;
-  padding: 6px;
-  gap: 4px;
-  opacity: 0;
-  transform: translateY(-2px);
-  transition: opacity .15s ease, transform .15s ease;
+  font-size:.875rem; color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;
 }
 
-/* show on hover of the icon wrapper */
-.menu:hover .partner-popup {
-  display: flex;
-  flex-direction: column;
-  opacity: 1;
-  transform: translateY(0);
-}
+/* Right action bar */
+.partner-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
 
-/* items inside popup */
-.partner-popup button {
-  background: transparent;
-  border: none;
-  padding: 6px 10px;
-  text-align: left;
-  color: var(--fg);
-  border-radius: 8px;
-}
-.partner-popup button:hover {
-  background: rgba(10,127,36,.25);
-  color: #fff;
-}
-/* Row container already works; ensure it allows overlays */
-.partner-row { position: relative; overflow: visible; }
-
-/* Compact icon button that IGNORES global button padding/border */
+/* Icon button that ignores global <button> styles */
 .action-btn {
-  all: unset;                           /* wipe global button styles */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;                          /* smaller button */
-  height: 28px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
+  all:unset;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:28px; border-radius:10px;
+  border:1px solid var(--border);
   background: rgba(255,255,255,.02);
   color: var(--fg);
-  cursor: pointer;
+  cursor:pointer;
 }
-.action-btn:hover {
-  background: #0a7f24;
-  border-color: #0a7f24;
-  color: #fff;
-}
+.action-btn:hover { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
 
-/* Wrapper for each icon to anchor its popup */
-.menu { position: relative; }
-
-/* Hidden by default; appears on hover of the icon wrapper */
-.partner-popup {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);                /* sits below the icon, same row */
-  min-width: 160px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.25);
-  z-index: 9999;
-  padding: 6px;
-  gap: 4px;
-  opacity: 0;
-  transform: translateY(-2px);
-  transition: opacity .15s ease, transform .15s ease;
-}
-.menu:hover .partner-popup {
-  display: flex;
-  flex-direction: column;
-  opacity: 1;
-  transform: translateY(0);
-}
-.partner-popup button {
-  all: unset;
-  padding: 6px 10px;
-  border-radius: 8px;
-  color: var(--fg);
-  cursor: pointer;
-}
-.partner-popup button:hover {
-  background: rgba(10,127,36,.25);
-  color: #fff;
-}
-
-/* Tighter text truncation so long names don’t stretch rows */
-.partner-company { max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.partner-name    { max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* --- Partner actions: compact icon buttons and hover flyouts --- */
-.partner-row { position: relative; overflow: visible; }
-
-.action-btn {
-  all: unset;                /* ignore global button styles */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px; height: 28px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.02);
-  color: var(--fg);
-  cursor: pointer;
-}
-.action-btn:hover { background:#0a7f24; border-color:#0a7f24; color:#fff; }
-
-.partner-menu { position: relative; display: inline-flex; }
+/* =========================================================
+   Partner flyouts (phone/email/maps)
+   ========================================================= */
+.partner-menu { position:relative; display:inline-flex; }
 
 /* hidden by default */
 .partner-flyout {
-  display: none;
-  position: absolute; right: 0; top: calc(100% + 6px);
-  min-width: 160px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.25);
-  z-index: 9999;
-  padding: 6px;
-  flex-direction: column;
-  gap: 4px;
-  opacity: 0; transform: translateY(-2px);
+  display:none;
+  position:absolute; right:0; top:calc(100% + 4px);   /* tuck right below icon */
+  min-width:160px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  z-index:9999;
+  padding:6px;
+  flex-direction:column; gap:4px;
+  opacity:0; transform:translateY(-2px);
   transition: opacity .15s ease, transform .15s ease;
 }
 
-/* show on hover of the icon wrapper */
-.partner-menu:hover .partner-flyout {
-  display: flex;
-  opacity: 1; transform: translateY(0);
+/* keep open when moving from icon to flyout */
+.partner-menu:hover .partner-flyout,
+.partner-menu .partner-flyout:hover {
+  display:flex;
+  opacity:1; transform:translateY(0);
+}
+
+/* small invisible bridge to avoid flicker on the gap */
+.partner-flyout::before {
+  content:""; position:absolute; right:0; top:-6px; height:6px; width:100%;
+  background:transparent;
 }
 
 .partner-flyout button {
-  all: unset;
-  padding: 6px 10px;
-  border-radius: 8px;
-  color: var(--fg);
-  cursor: pointer;
+  all:unset; padding:6px 10px; border-radius:8px; color:var(--fg); cursor:pointer;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.partner-flyout button:hover { background: rgba(10,127,36,.25); color:#fff; }
-
-/* keep names compact */
-.partner-company { max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.partner-name    { max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-
+.partner-flyout button:hover { background:rgba(10,127,36,.25); color:#fff; }
