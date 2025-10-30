@@ -137,24 +137,29 @@ export default function SubbieSupplierPage() {
 <ul className="divide-y divide-zinc-700/30">
   {filtered.map((p) => {
     const numbers = [p.phone_business, p.phone_cell].filter(Boolean) as string[];
+    const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
     return (
       <li
         key={p.id}
-        className="flex items-center justify-between px-3 py-1.5 cursor-pointer 
-                   transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950"
-        onClick={() => console.log("edit", p.id)}
+        className="flex flex-row items-center justify-between 
+                   px-3 py-1.5 cursor-pointer select-none 
+                   hover:bg-emerald-50 dark:hover:bg-emerald-950 
+                   transition-colors rounded-md"
+        onClick={() => console.log('edit', p.id)}
       >
-        {/* Left side */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 min-w-0 overflow-hidden">
-          <span className="font-medium truncate max-w-xs">{p.company}</span>
-          <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate sm:ml-2">
-            {`${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim()}
-          </span>
+        {/* LEFT SIDE */}
+        <div className="flex flex-row items-center gap-2 min-w-0 overflow-hidden">
+          <span className="font-medium truncate max-w-[250px]">{p.company}</span>
+          {fullName && (
+            <span className="text-sm text-zinc-500 dark:text-zinc-400 truncate max-w-[180px]">
+              • {fullName}
+            </span>
+          )}
         </div>
 
-        {/* Right icons */}
+        {/* RIGHT SIDE ICONS */}
         <div
-          className="flex items-center gap-2 shrink-0 ml-4"
+          className="flex flex-row items-center gap-2 shrink-0 ml-2"
           onClick={(e) => e.stopPropagation()}
         >
           {/* PHONE */}
@@ -163,14 +168,14 @@ export default function SubbieSupplierPage() {
               onClick={() =>
                 numbers.length === 1 && window.location.assign(`tel:${numbers[0]}`)
               }
-              className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800"
+              className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
             >
               <Phone className="w-4 h-4" />
             </button>
             {numbers.length > 0 && (
               <div className="absolute right-0 top-6 hidden group-hover:flex flex-col 
                               bg-white dark:bg-zinc-900 border dark:border-zinc-700 
-                              rounded-md shadow-lg text-sm">
+                              rounded-md shadow-lg text-sm z-50">
                 {numbers.map((n) => (
                   <button
                     key={n}
@@ -189,31 +194,31 @@ export default function SubbieSupplierPage() {
             <div className="relative group">
               <button
                 onClick={() => window.location.assign(`mailto:${p.email}`)}
-                className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800"
+                className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
               >
                 <Mail className="w-4 h-4" />
               </button>
               <div className="absolute right-0 top-6 hidden group-hover:flex 
                               bg-white dark:bg-zinc-900 border dark:border-zinc-700 
-                              rounded-md shadow-lg px-3 py-1 text-sm whitespace-nowrap">
+                              rounded-md shadow-lg px-3 py-1 text-sm whitespace-nowrap z-50">
                 {p.email}
               </div>
             </div>
           )}
 
-          {/* MAP / ADDRESS */}
+          {/* MAP */}
           {p.google_maps_url && (
             <div className="relative group">
               <button
                 onClick={() => window.open(p.google_maps_url!, "_blank")}
-                className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800"
+                className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
               >
                 <Navigation className="w-4 h-4" />
               </button>
               {p.address && (
                 <div className="absolute right-0 top-6 hidden group-hover:flex 
                                 bg-white dark:bg-zinc-900 border dark:border-zinc-700 
-                                rounded-md shadow-lg px-3 py-1 text-sm max-w-xs truncate">
+                                rounded-md shadow-lg px-3 py-1 text-sm max-w-[250px] truncate z-50">
                   {p.address}
                 </div>
               )}
@@ -224,6 +229,7 @@ export default function SubbieSupplierPage() {
     );
   })}
 </ul>
+
 
     )}
   </CardContent>
