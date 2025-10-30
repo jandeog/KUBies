@@ -23,16 +23,19 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 );
 
+/** Treat "", "-", "nan", "null", "undefined" as not-applicable. */
+function isNA(v?: string | null) {
+  if (!v) return true;
+  const t = String(v).trim().toLowerCase();
+  return t === "" || t === "-" || t === "nan" || t === "null" || t === "undefined";
+}
+
+/** Keep only digits and +; ignore NA values entirely. */
 function normalizeNumber(n?: string | null) {
-  if (!n) return "";
+  if (isNA(n)) return "";
   const s = String(n);
   const cleaned = s.match(/[0-9+]+/g)?.join("") ?? "";
   return cleaned;
-}
-function isBlank(v?: string | null) {
-  if (!v) return true;
-  const t = String(v).trim().toLowerCase();
-  return t === "" || t === "nan" || t === "null" || t === "undefined";
 }
 
 export default function SubbieSupplierPage() {
@@ -60,7 +63,7 @@ export default function SubbieSupplierPage() {
     const set = new Set<string>();
     partners.forEach((p) => {
       const s = (p.specialty || "").trim();
-      if (s && s.toLowerCase() !== "nan") set.add(s);
+      if (!isNA(s)) set.add(s);
     });
     return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [partners]);
@@ -116,8 +119,8 @@ export default function SubbieSupplierPage() {
             const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
 
             const hasPhone = numbers.length > 0;
-            const hasEmail = !isBlank(p.email);
-            const hasMap = !isBlank(p.google_maps_url) && !isBlank(p.address);
+            const hasEmail = !isNA(p.email);
+            const hasMap = !isNA(p.google_maps_url) && !isNA(p.address);
 
             return (
               <div
@@ -150,7 +153,7 @@ export default function SubbieSupplierPage() {
                     </div>
                   ) : (
                     <button className="action-btn" aria-label="Call" aria-disabled="true">
-                        <Phone className="action-icon" />
+                      <Phone className="action-icon" />
                     </button>
                   )}
 

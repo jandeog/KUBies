@@ -23,15 +23,23 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 );
 
+function isNA(v?: string | null) {
+  if (!v) return true;
+  const t = String(v).trim().toLowerCase();
+  return t === "" || t === "-" || t === "nan" || t === "null" || t === "undefined";
+}
 function clean(v?: string | null) {
-  if (!v) return null;
+  if (v == null) return null;
   const t = String(v).trim();
-  if (!t || ["nan", "null", "undefined"].includes(t.toLowerCase())) return null;
+  if (!t) return null;
+  const l = t.toLowerCase();
+  if (l === "nan") return "-";            // normalize to dash
+  if (l === "null" || l === "undefined") return null;
   return t;
 }
 function mapsFromAddress(addr?: string | null) {
-  const a = clean(addr);
-  return a ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a)}` : null;
+  if (isNA(addr)) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(String(addr).trim())}`;
 }
 
 export default function PartnerEditorPage() {
@@ -63,7 +71,7 @@ export default function PartnerEditorPage() {
         const set = new Set<string>();
         all.forEach((r: any) => {
           const s = (r.specialty || "").trim();
-          if (s && s.toLowerCase() !== "nan") set.add(s);
+          if (!isNA(s)) set.add(s);
         });
         setSpecialties(Array.from(set).sort((a, b) => a.localeCompare(b)));
       }
