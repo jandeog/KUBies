@@ -140,11 +140,11 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   transition: background 0.2s, border 0.2s;
   position: relative;      /* <-- add */
   overflow: visible;       /* <-- add */
-  z-index: 0;              /* ensures stacking context without hiding popups */
+          /* ensures stacking context without hiding popups */
 }
-.partner-row:hover {
-  background: rgba(10, 127, 36, 0.12);
-  border-color: #0a7f24;
+.partner-row:hover,
+.partner-row:focus-within {
+  z-index: 999; /* any value > 0 works */
 }
 
 .partner-left {
@@ -238,7 +238,7 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   color: #fff;
 }
 /* Row container already works; ensure it allows overlays */
-.partner-row { position: relative; overflow: visible; z-index: 0; }
+.partner-row { position: relative; overflow: visible; }
 
 /* Compact icon button that IGNORES global button padding/border */
 .action-btn {
@@ -303,7 +303,7 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
 .partner-company { max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .partner-name    { max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* --- Partner actions: compact icon buttons and hover flyouts --- */
-.partner-row { position: relative; overflow: visible; z-index: 0; }
+.partner-row { position: relative; overflow: visible; }
 
 .action-btn {
   all: unset;                /* ignore global button styles */
