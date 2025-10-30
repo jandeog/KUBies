@@ -138,11 +138,15 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   background: var(--card);
   padding: 10px 14px;
   transition: background 0.2s, border 0.2s;
+  position: relative;      /* <-- add */
+  overflow: visible;       /* <-- add */
+  z-index: 0;              /* ensures stacking context without hiding popups */
 }
 .partner-row:hover {
   background: rgba(10, 127, 36, 0.12);
   border-color: #0a7f24;
 }
+
 .partner-left {
   flex: 1;
   min-width: 0;
@@ -183,4 +187,14 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   background: #0a7f24;
   color: #fff;
 }
+.partner-popup {
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.group:hover .partner-popup {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 

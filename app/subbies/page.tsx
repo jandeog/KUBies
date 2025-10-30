@@ -81,6 +81,21 @@ export default function SubbieSupplierPage() {
         </div>
 
         {/* RIGHT side */}
+        <div
+  className="absolute right-0 top-9 hidden group-hover:flex flex-col
+             bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg text-sm
+             z-[9999] min-w-[140px]"
+>
+  {numbers.map((num) => (
+    <button
+      key={num}
+      onClick={() => window.location.assign(`tel:${num}`)}
+      className="px-4 py-1 text-left hover:bg-emerald-800 transition"
+    >
+      {num}
+    </button>
+  ))}
+</div>
        <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
   {/* PHONE */}
   {numbers.length > 0 && (
