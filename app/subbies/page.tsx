@@ -134,99 +134,98 @@ export default function SubbieSupplierPage() {
     ) : filtered.length === 0 ? (
       <div className="p-4 opacity-70">No results.</div>
     ) : (
-<ul className="flex flex-col divide-y divide-zinc-800">
+<div className="flex flex-col gap-2">
   {filtered.map((p) => {
     const numbers = [p.phone_business, p.phone_cell].filter(Boolean) as string[];
     const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
+
     return (
-      <li
+      <div
         key={p.id}
-        className="group flex items-center justify-between px-3 py-2
-                   hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-colors rounded-md"
-        onClick={() => console.log('edit', p.id)}
+        onClick={() => console.log("edit", p.id)}
+        className="flex items-center justify-between rounded-xl border border-transparent 
+                   hover:border-emerald-700 hover:bg-emerald-950/40 transition-colors px-4 py-3"
       >
-        {/* LEFT side: company + name */}
-        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-          <span className="truncate font-medium">{p.company}</span>
-          {fullName && (
-            <span className="truncate text-sm text-zinc-500 dark:text-zinc-400">
-              • {fullName}
-            </span>
-          )}
+        {/* LEFT side */}
+        <div className="flex flex-col overflow-hidden min-w-0">
+          <div className="font-semibold truncate">{p.company || "—"}</div>
+          <div className="text-sm text-zinc-400 truncate">
+            {fullName || "—"}
+          </div>
         </div>
 
-        {/* RIGHT side: action icons */}
+        {/* RIGHT side */}
         <div
-          className="flex shrink-0 items-center gap-2 ml-4"
+          className="flex items-center gap-2 shrink-0 ml-4"
           onClick={(e) => e.stopPropagation()}
         >
           {/* PHONE */}
-          <div className="relative group/phone">
-            <button
-              onClick={() =>
-                numbers.length === 1 && window.location.assign(`tel:${numbers[0]}`)
-              }
-              className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
-            >
-              <Phone className="w-4 h-4" />
-            </button>
-            {numbers.length > 0 && (
-              <div className="absolute right-0 top-6 hidden group-hover/phone:flex flex-col
-                              bg-white dark:bg-zinc-900 border dark:border-zinc-700
-                              rounded-md shadow-lg text-sm z-50">
-                {numbers.map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => window.location.assign(`tel:${n}`)}
-                    className="px-3 py-1 text-left hover:bg-emerald-50 dark:hover:bg-emerald-800"
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {numbers.length > 0 && (
+            <div className="relative group">
+              <button
+                onClick={() =>
+                  numbers.length === 1 && window.location.assign(`tel:${numbers[0]}`)
+                }
+                className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
+              >
+                <Phone className="w-4 h-4 text-zinc-200" />
+              </button>
+              {numbers.length > 1 && (
+                <div className="absolute right-0 top-9 hidden group-hover:flex flex-col
+                                bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg text-sm z-50">
+                  {numbers.map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => window.location.assign(`tel:${n}`)}
+                      className="px-4 py-1 text-left hover:bg-emerald-800 transition"
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* EMAIL */}
           {p.email && (
-            <div className="relative group/email">
+            <div className="relative group">
               <button
                 onClick={() => window.location.assign(`mailto:${p.email}`)}
-                className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
+                className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4 text-zinc-200" />
               </button>
-              <div className="absolute right-0 top-6 hidden group-hover/email:flex
-                              bg-white dark:bg-zinc-900 border dark:border-zinc-700
-                              rounded-md shadow-lg px-3 py-1 text-sm whitespace-nowrap z-50">
+              <div className="absolute right-0 top-9 hidden group-hover:flex 
+                              bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm z-50">
                 {p.email}
               </div>
             </div>
           )}
 
-          {/* MAPS */}
+          {/* MAP */}
           {p.google_maps_url && (
-            <div className="relative group/maps">
+            <div className="relative group">
               <button
-                onClick={() => window.open(p.google_maps_url!, '_blank')}
-                className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
+                onClick={() => window.open(p.google_maps_url!, "_blank")}
+                className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
               >
-                <Navigation className="w-4 h-4" />
+                <Navigation className="w-4 h-4 text-zinc-200" />
               </button>
               {p.address && (
-                <div className="absolute right-0 top-6 hidden group-hover/maps:flex
-                                bg-white dark:bg-zinc-900 border dark:border-zinc-700
-                                rounded-md shadow-lg px-3 py-1 text-sm max-w-xs truncate z-50">
+                <div className="absolute right-0 top-9 hidden group-hover:flex 
+                                bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm max-w-xs truncate z-50">
                   {p.address}
                 </div>
               )}
             </div>
           )}
         </div>
-      </li>
+      </div>
     );
   })}
-</ul>
+</div>
+
 
 
 
