@@ -196,5 +196,46 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   opacity: 1;
   transform: translateY(0);
 }
+/* Hover menus (phone/email/maps) */
+.menu { position: relative; }
+
+/* hidden by default */
+.partner-popup {
+  display: none;
+  position: absolute; right: 0; top: 36px;
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  z-index: 9999;
+  padding: 6px;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+/* show on hover of the icon wrapper */
+.menu:hover .partner-popup {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* items inside popup */
+.partner-popup button {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  text-align: left;
+  color: var(--fg);
+  border-radius: 8px;
+}
+.partner-popup button:hover {
+  background: rgba(10,127,36,.25);
+  color: #fff;
+}
 
 

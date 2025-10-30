@@ -81,36 +81,18 @@ export default function SubbieSupplierPage() {
         </div>
 
         {/* RIGHT side */}
-        <div
-  className="absolute right-0 top-9 hidden group-hover:flex flex-col
-             bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg text-sm
-             z-[9999] min-w-[140px]"
->
-  {numbers.map((num) => (
-    <button
-      key={num}
-      onClick={() => window.location.assign(`tel:${num}`)}
-      className="px-4 py-1 text-left hover:bg-emerald-800 transition"
-    >
-      {num}
-    </button>
-  ))}
-</div>
-       <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
+
+
+     <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
   {/* PHONE */}
   {numbers.length > 0 && (
-    <div className="relative group">
-      <button className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition">
-        <Phone className="w-4 h-4 text-zinc-200" />
+    <div className="menu">
+      <button aria-label="Call">
+        <Phone className="w-4 h-4" />
       </button>
-      <div className="absolute right-0 top-9 hidden group-hover:flex flex-col
-                      bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg text-sm z-50 min-w-[140px]">
+      <div className="partner-popup">
         {numbers.map((num) => (
-          <button
-            key={num}
-            onClick={() => window.location.assign(`tel:${num}`)}
-            className="px-4 py-1 text-left hover:bg-emerald-800 transition"
-          >
+          <button key={num} onClick={() => window.location.assign(`tel:${num}`)}>
             {num}
           </button>
         ))}
@@ -120,39 +102,27 @@ export default function SubbieSupplierPage() {
 
   {/* EMAIL */}
   {p.email && (
-    <div className="relative group">
-      <button
-        className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-      >
-        <Mail className="w-4 h-4 text-zinc-200" />
+    <div className="menu">
+      <button aria-label="Email">
+        <Mail className="w-4 h-4" />
       </button>
-      <div className="absolute right-0 top-9 hidden group-hover:flex 
-                      bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm z-50">
-        <button
-          onClick={() => window.location.assign(`mailto:${p.email}`)}
-          className="truncate hover:underline text-left"
-        >
+      <div className="partner-popup">
+        <button onClick={() => window.location.assign(`mailto:${p.email}`)}>
           {p.email}
         </button>
       </div>
     </div>
   )}
 
-  {/* MAP */}
+  {/* MAPS */}
   {p.google_maps_url && (
-    <div className="relative group">
-      <button
-        className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-      >
-        <Navigation className="w-4 h-4 text-zinc-200" />
+    <div className="menu">
+      <button aria-label="Navigate">
+        <Navigation className="w-4 h-4" />
       </button>
       {p.address && (
-        <div className="absolute right-0 top-9 hidden group-hover:flex 
-                        bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm max-w-[240px] truncate z-50">
-          <button
-            onClick={() => window.open(p.google_maps_url!, "_blank")}
-            className="truncate hover:underline text-left"
-          >
+        <div className="partner-popup" style={{ maxWidth: 260 }}>
+          <button onClick={() => window.open(p.google_maps_url!, "_blank")}>
             {p.address}
           </button>
         </div>
@@ -160,6 +130,7 @@ export default function SubbieSupplierPage() {
     </div>
   )}
 </div>
+
 
       </div>
     );
