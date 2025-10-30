@@ -137,37 +137,37 @@ label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
 
 /* Dark theme: black popup, white text */
 :root.dark .select-theme {
-  background-color: #000;
-  color: #fff;
+  background-color: #0b0b0d;
+  color: #ffe7e7ea;
   color-scheme: dark;
 }
 :root.dark .select-theme option,
 :root.dark .select-theme optgroup {
-  background-color: #000;
-  color: #fff;
+  background-color: #0b0b0d;
+  color: #ffe7e7ea;
 }
 
 /* Light / system-light: white popup, dark text */
 :root.light .select-theme,
 :root:not(.dark):not(.light) .select-theme {
-  background-color: #fff;
-  color: #111;
+  color: #ffe7e7ea;
+  color: #0b0b0d;
   color-scheme: light;
 }
 :root.light .select-theme option,
 :root.light .select-theme optgroup,
 :root:not(.dark):not(.light) .select-theme option,
 :root:not(.dark):not(.light) .select-theme optgroup {
-  background-color: #fff;
-  color: #111;
+  background-color: #ffe7e7ea;
+  color: #0b0b0d;
 }
 
 
 /* Popup list items */
 .select--dark option,
 .select--dark optgroup {
-  background-color: #000 !important;
-  color: #fff !important;
+  background-color: #0b0b0d !important;
+  color:#ffe7e7ea !important;
 }
 
 /* Hint browsers to use dark UI chrome for the popup */

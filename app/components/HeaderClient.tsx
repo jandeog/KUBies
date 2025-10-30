@@ -28,7 +28,7 @@ export default function HeaderClient() {
   }
 
   function cycleTheme() {
-    const order: Theme[] = ['system', 'dark', 'light'];
+    const order: Theme[] = ['dark', 'light'];
     const next = order[(order.indexOf(theme) + 1) % order.length];
     applyTheme(next);
   }

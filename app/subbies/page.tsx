@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Phone, Mail, Navigation } from "lucide-react";
 import Button from "@/components/ui/button";
@@ -17,11 +18,11 @@ type Partner = {
   address?: string | null;
 };
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+);
 
-/* helpers */
 function normalizeNumber(n?: string | null) {
   if (!n) return "";
   const s = String(n);
@@ -35,6 +36,7 @@ function isBlank(v?: string | null) {
 }
 
 export default function SubbieSupplierPage() {
+  const router = useRouter();
   const [loading, setLoading] = React.useState(true);
   const [partners, setPartners] = React.useState<Partner[]>([]);
   const [query, setQuery] = React.useState("");
@@ -54,15 +56,14 @@ export default function SubbieSupplierPage() {
     })();
   }, []);
 
- const specialties = React.useMemo(() => {
-  const set = new Set<string>();
-  partners.forEach((p) => {
-    const s = (p.specialty || "").trim();
-    if (s && s.toLowerCase() !== "nan") set.add(s);
-  });
-  return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
-}, [partners]);
-
+  const specialties = React.useMemo(() => {
+    const set = new Set<string>();
+    partners.forEach((p) => {
+      const s = (p.specialty || "").trim();
+      if (s && s.toLowerCase() !== "nan") set.add(s);
+    });
+    return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+  }, [partners]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -79,36 +80,32 @@ export default function SubbieSupplierPage() {
     <div className="max-w-5xl mx-auto p-4 space-y-6">
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Subbie – Supplier</h1>
-        <Button>+ Add New</Button>
+        <Button onClick={() => router.push("/subbies/new")}>+ Add New</Button>
       </header>
 
-{/* Search + Specialty filter */}
-<div className="grid" style={{ gridTemplateColumns: "1fr 220px", gap: 10 }}>
-  <input
-    value={query}
-    onChange={(e) => setQuery(e.target.value)}
-    placeholder="Search by company, last name or first name…"
-  />
-
-  {/* ONE select only */}
-<select
-  className="select-theme"
-  value={specialtyFilter}
-  onChange={(e) => setSpecialtyFilter(e.target.value)}
-  aria-label="Specialty"
->
-  {specialties.map((s) => (
-    <option key={s} value={s === "All" ? "" : s}>
-      {s}
-    </option>
-  ))}
-</select>
-</div>
-
+      {/* Search + Specialty filter */}
+      <div className="grid" style={{ gridTemplateColumns: "1fr 220px", gap: 10 }}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by company, last name or first name…"
+        />
+        <select
+          className="select-theme"
+          value={specialtyFilter}
+          onChange={(e) => setSpecialtyFilter(e.target.value)}
+          aria-label="Specialty"
+        >
+          {specialties.map((s) => (
+            <option key={s} value={s === "All" ? "" : s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* List */}
-      <div className="grid gap-2 partners-list"></div>
-      <div className="grid gap-2">
+      <div className="grid gap-2 partners-list">
         {loading ? (
           <div className="p-4 opacity-70">Loading…</div>
         ) : filtered.length === 0 ? (
@@ -117,19 +114,25 @@ export default function SubbieSupplierPage() {
           filtered.map((p) => {
             const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean) as string[];
             const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
+
             const hasPhone = numbers.length > 0;
             const hasEmail = !isBlank(p.email);
             const hasMap = !isBlank(p.google_maps_url) && !isBlank(p.address);
 
             return (
-              <div key={p.id} className="partner-row" onClick={() => console.log("edit", p.id)}>
+              <div
+                key={p.id}
+                className="partner-row"
+                onClick={() => router.push(`/subbies/${p.id}`)}
+                role="button"
+              >
                 {/* Left */}
                 <div className="partner-left">
                   <div className="partner-company">{p.company || "—"}</div>
                   <div className="partner-name">{fullName || "—"}</div>
                 </div>
 
-                {/* Right actions */}
+                {/* Right actions (stop click bubbling so row navigation doesn't fire) */}
                 <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
                   {/* Phone */}
                   {hasPhone ? (
