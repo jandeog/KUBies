@@ -20,6 +20,11 @@ type Partner = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function normalizeNumber(n?: string | null) {
+  if (!n) return "";
+  const cleaned = String(n).replace(/[^0-9+]/g, ""); // keep only digits and +
+  return cleaned.length > 15 ? cleaned.slice(0, 15) : cleaned;
+}
 
 export default function SubbieSupplierPage() {
   const [loading, setLoading] = React.useState(true);
@@ -59,7 +64,8 @@ export default function SubbieSupplierPage() {
       {/* Search */}
 <div className="grid gap-2">
   {filtered.map((p) => {
-    const numbers = [p.phone_business, p.phone_cell].filter(Boolean) as string[];
+    const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean);
+
     const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
 
     return (
@@ -75,75 +81,71 @@ export default function SubbieSupplierPage() {
         </div>
 
         {/* RIGHT side */}
-        <div
-          className="partner-actions"
-          onClick={(e) => e.stopPropagation()}
+       <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
+  {/* PHONE */}
+  {numbers.length > 0 && (
+    <div className="relative group">
+      <button className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition">
+        <Phone className="w-4 h-4 text-zinc-200" />
+      </button>
+      <div className="absolute right-0 top-9 hidden group-hover:flex flex-col
+                      bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg text-sm z-50 min-w-[140px]">
+        {numbers.map((num) => (
+          <button
+            key={num}
+            onClick={() => window.location.assign(`tel:${num}`)}
+            className="px-4 py-1 text-left hover:bg-emerald-800 transition"
+          >
+            {num}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {/* EMAIL */}
+  {p.email && (
+    <div className="relative group">
+      <button
+        className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
+      >
+        <Mail className="w-4 h-4 text-zinc-200" />
+      </button>
+      <div className="absolute right-0 top-9 hidden group-hover:flex 
+                      bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm z-50">
+        <button
+          onClick={() => window.location.assign(`mailto:${p.email}`)}
+          className="truncate hover:underline text-left"
         >
-          {/* PHONE */}
-          {numbers.length > 0 && (
-            <div className="relative group">
-              <button
-                className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-              >
-                <Phone className="w-4 h-4 text-zinc-200" />
-              </button>
-              <div className="absolute right-0 top-9 hidden group-hover:flex flex-col
-                              bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg text-sm z-50 min-w-[130px]">
-                {numbers.map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => window.location.assign(`tel:${num}`)}
-                    className="px-3 py-1 text-left hover:bg-emerald-800 truncate"
-                  >
-                    {num}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {p.email}
+        </button>
+      </div>
+    </div>
+  )}
 
-          {/* EMAIL */}
-          {p.email && (
-            <div className="relative group">
-              <button
-                className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-              >
-                <Mail className="w-4 h-4 text-zinc-200" />
-              </button>
-              <div className="absolute right-0 top-9 hidden group-hover:flex 
-                              bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm z-50 truncate">
-                <button
-                  onClick={() => window.location.assign(`mailto:${p.email}`)}
-                  className="text-left truncate"
-                >
-                  {p.email}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* MAPS */}
-          {p.google_maps_url && (
-            <div className="relative group">
-              <button
-                className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-              >
-                <Navigation className="w-4 h-4 text-zinc-200" />
-              </button>
-              {p.address && (
-                <div className="absolute right-0 top-9 hidden group-hover:flex 
-                                bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm max-w-[220px] truncate z-50">
-                  <button
-                    onClick={() => window.open(p.google_maps_url!, "_blank")}
-                    className="text-left truncate"
-                  >
-                    {p.address}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+  {/* MAP */}
+  {p.google_maps_url && (
+    <div className="relative group">
+      <button
+        className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
+      >
+        <Navigation className="w-4 h-4 text-zinc-200" />
+      </button>
+      {p.address && (
+        <div className="absolute right-0 top-9 hidden group-hover:flex 
+                        bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm max-w-[240px] truncate z-50">
+          <button
+            onClick={() => window.open(p.google_maps_url!, "_blank")}
+            className="truncate hover:underline text-left"
+          >
+            {p.address}
+          </button>
         </div>
+      )}
+    </div>
+  )}
+</div>
+
       </div>
     );
   })}
