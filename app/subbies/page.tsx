@@ -21,11 +21,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-/* Helpers to clean user data */
+/* helpers */
 function normalizeNumber(n?: string | null) {
   if (!n) return "";
   const s = String(n);
-  const cleaned = s.match(/[0-9+]+/g)?.join("") ?? "";  // drop spaces/exponent
+  const cleaned = s.match(/[0-9+]+/g)?.join("") ?? "";
   return cleaned;
 }
 function isBlank(v?: string | null) {
@@ -38,6 +38,7 @@ export default function SubbieSupplierPage() {
   const [loading, setLoading] = React.useState(true);
   const [partners, setPartners] = React.useState<Partner[]>([]);
   const [query, setQuery] = React.useState("");
+  const [specialtyFilter, setSpecialtyFilter] = React.useState<string>("");
 
   React.useEffect(() => {
     (async () => {
@@ -53,14 +54,25 @@ export default function SubbieSupplierPage() {
     })();
   }, []);
 
+  const specialties = React.useMemo(() => {
+    const set = new Set<string>();
+    partners.forEach((p) => {
+      const s = (p.specialty || "").trim();
+      if (s) set.add(s);
+    });
+    return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+  }, [partners]);
+
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return partners;
+    const only = specialtyFilter && specialtyFilter !== "All" ? specialtyFilter : "";
     return partners.filter((p) => {
+      if (only && (p.specialty || "") !== only) return false;
+      if (!q) return true;
       const hay = `${p.contact_last_name || ""} ${p.contact_first_name || ""} ${p.company || ""}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [partners, query]);
+  }, [partners, query, specialtyFilter]);
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
@@ -69,13 +81,24 @@ export default function SubbieSupplierPage() {
         <Button>+ Add New</Button>
       </header>
 
-      {/* Search box */}
-      <div className="flex items-center gap-3">
+      {/* Search + Specialty filter */}
+      <div className="grid" style={{ gridTemplateColumns: "1fr 220px", gap: 10 }}>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by company, last name or first name…"
         />
+        <select
+          value={specialtyFilter}
+          onChange={(e) => setSpecialtyFilter(e.target.value)}
+          aria-label="Specialty"
+        >
+          {specialties.map((s) => (
+            <option key={s} value={s === "All" ? "" : s}>
+              {s}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* List */}
@@ -88,14 +111,13 @@ export default function SubbieSupplierPage() {
           filtered.map((p) => {
             const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean) as string[];
             const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
-
             const hasPhone = numbers.length > 0;
             const hasEmail = !isBlank(p.email);
             const hasMap = !isBlank(p.google_maps_url) && !isBlank(p.address);
 
             return (
               <div key={p.id} className="partner-row" onClick={() => console.log("edit", p.id)}>
-                {/* Left side */}
+                {/* Left */}
                 <div className="partner-left">
                   <div className="partner-company">{p.company || "—"}</div>
                   <div className="partner-name">{fullName || "—"}</div>

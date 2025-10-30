@@ -9,7 +9,7 @@ export default function HeaderClient() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  // Simple theme without deps (stores in localStorage, toggles html class)
+  // theme toggle (same behavior as before)
   type Theme = 'system' | 'light' | 'dark';
   const [theme, setTheme] = useState<Theme>('system');
 
@@ -38,13 +38,11 @@ export default function HeaderClient() {
     window.location.href = '/login';
   }
 
-  // Close on outside click / Escape
+  // close on outside click / Esc
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
-      if (!open) return;
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (!open || !panelRef.current) return;
+      if (!panelRef.current.contains(e.target as Node)) setOpen(false);
     }
     function onEsc(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false);
@@ -66,57 +64,48 @@ export default function HeaderClient() {
   ];
 
   return (
-    <div className="header-wrap">
+    <div className="header" data-open={open ? 'true' : 'false'}>
       <div className="brand">
         <Link href="/" className="brand-link">KUBE</Link>
       </div>
 
-      <div className="menu-wrap" ref={panelRef}>
+      <div ref={panelRef} style={{ position: 'relative' }}>
         <button
-          className="menu-btn nav-link"
           aria-haspopup="menu"
           aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setOpen(v => !v)}
         >
           Menu
         </button>
 
-        {open && (
-          <div role="menu" className="menu-panel">
-            <div className="menu-section">
-              {items.map(({ href, label }) => {
-                const active = pathname === href || (href !== '/' && pathname?.startsWith(href));
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    role="menuitem"
-                    className={`menu-item${active ? ' active' : ''}`}
-                    onClick={() => setOpen(false)}
-                  >
-                    {label}
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="menu-section">
-              <button
-                role="menuitem"
-                className="menu-item"
-                onClick={() => {
-                  cycleTheme();
-                }}
-              >
-                Theme: {theme}
-              </button>
-
-              <button role="menuitem" className="menu-item" onClick={logout}>
-                Logout
-              </button>
-            </div>
+        {/* Keep the node in the tree and toggle with the .menu/.open CSS */}
+        <div role="menu" className={`menu ${open ? 'open' : ''}`}>
+          <div className="menu-section">
+            {items.map(({ href, label }) => {
+              const active = pathname === href || (href !== '/' && pathname?.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  role="menuitem"
+                  className={`menu-item${active ? ' active' : ''}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </div>
-        )}
+
+          <div className="menu-section">
+            <button role="menuitem" className="menu-item" onClick={cycleTheme}>
+              Theme: {theme}
+            </button>
+            <button role="menuitem" className="menu-item" onClick={logout}>
+              Logout
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
