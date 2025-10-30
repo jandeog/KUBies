@@ -237,5 +237,70 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   background: rgba(10,127,36,.25);
   color: #fff;
 }
+/* Row container already works; ensure it allows overlays */
+.partner-row { position: relative; overflow: visible; z-index: 0; }
+
+/* Compact icon button that IGNORES global button padding/border */
+.action-btn {
+  all: unset;                           /* wipe global button styles */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;                          /* smaller button */
+  height: 28px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.02);
+  color: var(--fg);
+  cursor: pointer;
+}
+.action-btn:hover {
+  background: #0a7f24;
+  border-color: #0a7f24;
+  color: #fff;
+}
+
+/* Wrapper for each icon to anchor its popup */
+.menu { position: relative; }
+
+/* Hidden by default; appears on hover of the icon wrapper */
+.partner-popup {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);                /* sits below the icon, same row */
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  z-index: 9999;
+  padding: 6px;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .15s ease, transform .15s ease;
+}
+.menu:hover .partner-popup {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  transform: translateY(0);
+}
+.partner-popup button {
+  all: unset;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--fg);
+  cursor: pointer;
+}
+.partner-popup button:hover {
+  background: rgba(10,127,36,.25);
+  color: #fff;
+}
+
+/* Tighter text truncation so long names don’t stretch rows */
+.partner-company { max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.partner-name    { max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 

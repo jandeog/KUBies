@@ -22,10 +22,11 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 function normalizeNumber(n?: string | null) {
   if (!n) return "";
-  const cleaned = String(n).replace(/[^0-9+]/g, ""); // keep only digits and +
-  return cleaned.length > 15 ? cleaned.slice(0, 15) : cleaned;
+  const s = String(n);
+  // if it looks like scientific notation from CSV, drop to digits
+  const cleaned = s.match(/[0-9+]+/g)?.join("") ?? "";
+  return cleaned;
 }
-
 export default function SubbieSupplierPage() {
   const [loading, setLoading] = React.useState(true);
   const [partners, setPartners] = React.useState<Partner[]>([]);
@@ -64,7 +65,7 @@ export default function SubbieSupplierPage() {
       {/* Search */}
 <div className="grid gap-2">
   {filtered.map((p) => {
-    const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean);
+const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean) as string[];
 
     const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
 
@@ -83,11 +84,11 @@ export default function SubbieSupplierPage() {
         {/* RIGHT side */}
 
 
-     <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
+    <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
   {/* PHONE */}
   {numbers.length > 0 && (
     <div className="menu">
-      <button aria-label="Call">
+      <button className="action-btn" aria-label="Call">
         <Phone className="w-4 h-4" />
       </button>
       <div className="partner-popup">
@@ -103,7 +104,7 @@ export default function SubbieSupplierPage() {
   {/* EMAIL */}
   {p.email && (
     <div className="menu">
-      <button aria-label="Email">
+      <button className="action-btn" aria-label="Email">
         <Mail className="w-4 h-4" />
       </button>
       <div className="partner-popup">
@@ -117,7 +118,7 @@ export default function SubbieSupplierPage() {
   {/* MAPS */}
   {p.google_maps_url && (
     <div className="menu">
-      <button aria-label="Navigate">
+      <button className="action-btn" aria-label="Navigate">
         <Navigation className="w-4 h-4" />
       </button>
       {p.address && (
@@ -130,6 +131,7 @@ export default function SubbieSupplierPage() {
     </div>
   )}
 </div>
+
 
 
       </div>
