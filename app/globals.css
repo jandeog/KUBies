@@ -159,6 +159,7 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 320px;
 }
 .partner-actions {
   display: flex;
