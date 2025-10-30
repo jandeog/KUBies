@@ -38,6 +38,16 @@ function normalizeNumber(n?: string | null) {
   return cleaned;
 }
 
+/** Sort: real companies first (A→Z), then "-" at the end */
+function sortByCompanyDashLast(a: Partner, b: Partner) {
+  const ac = (a.company || "").trim();
+  const bc = (b.company || "").trim();
+  const aDash = ac === "-";
+  const bDash = bc === "-";
+  if (aDash !== bDash) return aDash ? 1 : -1; // "-" goes last
+  return ac.toLowerCase().localeCompare(bc.toLowerCase());
+}
+
 export default function SubbieSupplierPage() {
   const router = useRouter();
   const [loading, setLoading] = React.useState(true);
@@ -79,6 +89,11 @@ export default function SubbieSupplierPage() {
     });
   }, [partners, query, specialtyFilter]);
 
+  const sorted = React.useMemo(() => {
+    // ensure company "-" goes last
+    return [...filtered].sort(sortByCompanyDashLast);
+  }, [filtered]);
+
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
       <header className="flex items-center justify-between gap-3">
@@ -111,10 +126,10 @@ export default function SubbieSupplierPage() {
       <div className="grid gap-2 partners-list">
         {loading ? (
           <div className="p-4 opacity-70">Loading…</div>
-        ) : filtered.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <div className="p-4 opacity-70">No results.</div>
         ) : (
-          filtered.map((p) => {
+          sorted.map((p) => {
             const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean) as string[];
             const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
 

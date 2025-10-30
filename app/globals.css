@@ -182,43 +182,35 @@ label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
 .select--dark::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 6px; }
 .partners-list { margin-top: 8px; }
 
-/* ===== Mobile tweaks (≤ 640px) ===== */
-@media (max-width: 640px) {
-  .partner-row { padding: 8px 10px; }
-  .partner-company { max-width: 62vw; font-size: 0.95rem; }
-  .partner-name { display: none; }            /* hide second line to save space */
-  .partner-actions { gap: 4px; }
-  .action-btn { width: 32px; height: 28px; }  /* smaller buttons */
-  .partner-flyout { right: -2px; top: calc(100% + 3px); min-width: 150px; }
-}
 /* Default icon size for action buttons */
 .action-icon { width: 18px; height: 18px; }
 
 /* ===== Mobile tweaks (≤ 640px) ===== */
 @media (max-width: 640px) {
-  .partner-row { padding: 8px 10px; }
+  .partner-row { padding: 6px 8px; }
 
-  /* keep TWO lines: company (line 1) + name (line 2), just smaller */
+  /* Keep TWO lines, but smaller & strictly truncated */
+  .partner-left { min-width: 0; flex: 1; }
   .partner-company {
-    font-size: 0.95rem;
-    max-width: calc(100% - 130px);   /* leave room for buttons */
+    font-size: 0.92rem;
+    max-width: 58vw;                 /* leave room for buttons */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .partner-name {
-    display: block;                   /* ensure second line shows */
-    margin-top: 2px;
-    font-size: 0.82rem;
-    max-width: calc(100% - 130px);   /* same cap as company */
+    display: block;                   /* second line visible */
+    margin-top: 1px;
+    font-size: 0.8rem;
+    max-width: 58vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .partner-left { min-width: 0; }    /* allow truncation */
+  .partner-actions { gap: 4px; flex-shrink: 0; }
+  .action-btn { width: 30px; height: 30px; }  /* good tap target */
+  .action-icon { width: 14px; height: 14px; } /* smaller glyphs */
 
-  /* buttons: good tap targets but still compact */
-  .partner-actions { gap: 6px; }
-  .action-btn      { width: 34px; height: 34px; }  /* taller for touch */
-  .action-icon     { width: 16px; height: 16px; }  /* slightly smaller glyphs */
-
-  /* flyout stays tight on mobile */
-  .partner-flyout { right: -2px; top: calc(100% + 3px); min-width: 150px; }
+  .partner-flyout { right: -2px; top: calc(100% + 3px); min-width: 130px; }
 }
-
-
