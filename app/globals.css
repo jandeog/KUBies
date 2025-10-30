@@ -128,3 +128,50 @@ label { font-weight: 600; display:block; margin-top:8px; color: var(--fg); }
 .actions { margin-top: 8px; }
 .ok { margin-top: 8px; color: #0a7f24; }
 .error { margin-top: 8px; color: #b00020; }
+/* Add this at the bottom of globals.css */
+.partner-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 10px 14px;
+  transition: background 0.2s, border 0.2s;
+}
+.partner-row:hover {
+  background: rgba(10, 127, 36, 0.12); /* light emerald tint */
+  border-color: #0a7f24;
+}
+.partner-left {
+  overflow: hidden;
+  min-width: 0;
+}
+.partner-company {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.partner-name {
+  font-size: 0.875rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.partner-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.partner-actions button {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+.partner-actions button:hover {
+  background: #0a7f24;
+  color: #fff;
+}

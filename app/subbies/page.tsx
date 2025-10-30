@@ -67,97 +67,30 @@ export default function SubbieSupplierPage() {
       </div>
 
       {/* List */}
-      <div className="flex flex-col gap-2">
-        {loading ? (
-          <div className="p-4 opacity-70">Loading…</div>
-        ) : filtered.length === 0 ? (
-          <div className="p-4 opacity-70">No results.</div>
-        ) : (
-          filtered.map((p) => {
-            const numbers = [p.phone_business, p.phone_cell].filter(Boolean) as string[];
-            const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
-
-            return (
-              <div
-                key={p.id}
-                className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 
-                           hover:border-emerald-600 hover:bg-emerald-950/60 transition-colors px-4 py-3"
-              >
-                {/* Left side */}
-                <div className="flex flex-col overflow-hidden min-w-0">
-                  <div className="font-semibold truncate text-zinc-100">{p.company || "—"}</div>
-                  <div className="text-sm text-zinc-400 truncate">{fullName || "—"}</div>
-                </div>
-
-                {/* Right icons */}
-                <div className="flex items-center gap-2 shrink-0 ml-4">
-                  {/* PHONE */}
-                  {numbers.length > 0 && (
-                    <div className="relative group">
-                      <button
-                        onClick={() =>
-                          numbers.length === 1 && window.location.assign(`tel:${numbers[0]}`)
-                        }
-                        className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-                      >
-                        <Phone className="w-4 h-4 text-zinc-200" />
-                      </button>
-                      {numbers.length > 1 && (
-                        <div className="absolute right-0 top-9 hidden group-hover:flex flex-col
-                                        bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg text-sm z-50">
-                          {numbers.map((n) => (
-                            <button
-                              key={n}
-                              onClick={() => window.location.assign(`tel:${n}`)}
-                              className="px-4 py-1 text-left hover:bg-emerald-800 transition"
-                            >
-                              {n}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* EMAIL */}
-                  {p.email && (
-                    <div className="relative group">
-                      <button
-                        onClick={() => window.location.assign(`mailto:${p.email}`)}
-                        className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-                      >
-                        <Mail className="w-4 h-4 text-zinc-200" />
-                      </button>
-                      <div className="absolute right-0 top-9 hidden group-hover:flex 
-                                      bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm z-50">
-                        {p.email}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* MAP */}
-                  {p.google_maps_url && (
-                    <div className="relative group">
-                      <button
-                        onClick={() => window.open(p.google_maps_url!, "_blank")}
-                        className="px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-emerald-700 transition"
-                      >
-                        <Navigation className="w-4 h-4 text-zinc-200" />
-                      </button>
-                      {p.address && (
-                        <div className="absolute right-0 top-9 hidden group-hover:flex 
-                                        bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg px-4 py-1 text-sm max-w-xs truncate z-50">
-                          {p.address}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
+      <div className="grid gap-2">
+  {filtered.map((p) => (
+    <div key={p.id} className="partner-row" onClick={() => console.log('edit', p.id)}>
+      <div className="partner-left">
+        <div className="partner-company">{p.company}</div>
+        <div className="partner-name">
+          {p.contact_first_name} {p.contact_last_name}
+        </div>
       </div>
+      <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
+        <button onClick={() => window.location.assign(`tel:${p.phone_business || p.phone_cell}`)}>
+          <Phone className="w-4 h-4" />
+        </button>
+        <button onClick={() => window.location.assign(`mailto:${p.email}`)}>
+          <Mail className="w-4 h-4" />
+        </button>
+        <button onClick={() => window.open(p.google_maps_url!, '_blank')}>
+          <Navigation className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
     </div>
   );
 }
