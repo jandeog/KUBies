@@ -20,17 +20,23 @@ type Partner = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+/* Helpers to clean user data */
 function normalizeNumber(n?: string | null) {
   if (!n) return "";
   const s = String(n);
-  // if it looks like scientific notation from CSV, drop to digits
-  const cleaned = s.match(/[0-9+]+/g)?.join("") ?? "";
+  const cleaned = s.match(/[0-9+]+/g)?.join("") ?? "";  // drop spaces/exponent
   return cleaned;
 }
+function isBlank(v?: string | null) {
+  if (!v) return true;
+  const t = String(v).trim().toLowerCase();
+  return t === "" || t === "nan" || t === "null" || t === "undefined";
+}
+
 export default function SubbieSupplierPage() {
   const [loading, setLoading] = React.useState(true);
   const [partners, setPartners] = React.useState<Partner[]>([]);
-  const [specialtyFilter, setSpecialtyFilter] = React.useState("");
   const [query, setQuery] = React.useState("");
 
   React.useEffect(() => {
@@ -49,9 +55,10 @@ export default function SubbieSupplierPage() {
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
+    if (!q) return partners;
     return partners.filter((p) => {
       const hay = `${p.contact_last_name || ""} ${p.contact_first_name || ""} ${p.company || ""}`.toLowerCase();
-      return !q || hay.includes(q);
+      return hay.includes(q);
     });
   }, [partners, query]);
 
@@ -62,85 +69,97 @@ export default function SubbieSupplierPage() {
         <Button>+ Add New</Button>
       </header>
 
-      {/* Search */}
-<div className="grid gap-2">
-  {filtered.map((p) => {
-const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean) as string[];
-
-    const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
-
-    return (
-      <div
-        key={p.id}
-        className="partner-row"
-        onClick={() => console.log("edit", p.id)}
-      >
-        {/* LEFT side */}
-        <div className="partner-left">
-          <div className="partner-company">{p.company}</div>
-          <div className="partner-name">{fullName}</div>
-        </div>
-
-        {/* RIGHT side */}
-
-
-<div className="partner-actions" onClick={(e) => e.stopPropagation()}>
-  {/* PHONE */}
-  {numbers.length > 0 && (
-    <div className="partner-menu">
-      <button className="action-btn" aria-label="Call">
-        <Phone className="w-4 h-4" />
-      </button>
-      <div className="partner-flyout">
-        {numbers.map((num) => (
-          <button key={num} onClick={() => window.location.assign(`tel:${num}`)}>
-            {num}
-          </button>
-        ))}
+      {/* Search box */}
+      <div className="flex items-center gap-3">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by company, last name or first name…"
+        />
       </div>
-    </div>
-  )}
 
-  {/* EMAIL */}
-  {p.email && (
-    <div className="partner-menu">
-      <button className="action-btn" aria-label="Email">
-        <Mail className="w-4 h-4" />
-      </button>
-      <div className="partner-flyout">
-        <button onClick={() => window.location.assign(`mailto:${p.email}`)}>
-          {p.email}
-        </button>
+      {/* List */}
+      <div className="grid gap-2">
+        {loading ? (
+          <div className="p-4 opacity-70">Loading…</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-4 opacity-70">No results.</div>
+        ) : (
+          filtered.map((p) => {
+            const numbers = [normalizeNumber(p.phone_business), normalizeNumber(p.phone_cell)].filter(Boolean) as string[];
+            const fullName = `${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim();
+
+            const hasPhone = numbers.length > 0;
+            const hasEmail = !isBlank(p.email);
+            const hasMap = !isBlank(p.google_maps_url) && !isBlank(p.address);
+
+            return (
+              <div key={p.id} className="partner-row" onClick={() => console.log("edit", p.id)}>
+                {/* Left side */}
+                <div className="partner-left">
+                  <div className="partner-company">{p.company || "—"}</div>
+                  <div className="partner-name">{fullName || "—"}</div>
+                </div>
+
+                {/* Right actions */}
+                <div className="partner-actions" onClick={(e) => e.stopPropagation()}>
+                  {/* Phone */}
+                  {hasPhone ? (
+                    <div className="partner-menu">
+                      <button className="action-btn" aria-label="Call">
+                        <Phone className="w-4 h-4" />
+                      </button>
+                      <div className="partner-flyout">
+                        {numbers.map((num) => (
+                          <button key={num} onClick={() => window.location.assign(`tel:${num}`)}>
+                            {num}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <button className="action-btn" aria-label="Call" aria-disabled="true">
+                      <Phone className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {/* Email */}
+                  {hasEmail ? (
+                    <div className="partner-menu">
+                      <button className="action-btn" aria-label="Email">
+                        <Mail className="w-4 h-4" />
+                      </button>
+                      <div className="partner-flyout">
+                        <button onClick={() => window.location.assign(`mailto:${p.email}`)}>{p.email}</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button className="action-btn" aria-label="Email" aria-disabled="true">
+                      <Mail className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {/* Maps */}
+                  {hasMap ? (
+                    <div className="partner-menu">
+                      <button className="action-btn" aria-label="Navigate">
+                        <Navigation className="w-4 h-4" />
+                      </button>
+                      <div className="partner-flyout" style={{ maxWidth: 260 }}>
+                        <button onClick={() => window.open(p.google_maps_url!, "_blank")}>{p.address}</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button className="action-btn" aria-label="Navigate" aria-disabled="true">
+                      <Navigation className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
-    </div>
-  )}
-
-  {/* MAPS */}
-  {p.google_maps_url && (
-    <div className="partner-menu">
-      <button className="action-btn" aria-label="Navigate">
-        <Navigation className="w-4 h-4" />
-      </button>
-      {p.address && (
-        <div className="partner-flyout" style={{ maxWidth: 260 }}>
-          <button onClick={() => window.open(p.google_maps_url!, "_blank")}>
-            {p.address}
-          </button>
-        </div>
-      )}
-    </div>
-  )}
-</div>
-
-
-
-
-      </div>
-    );
-  })}
-</div>
-
-
     </div>
   );
 }

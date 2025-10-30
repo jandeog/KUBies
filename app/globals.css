@@ -8,10 +8,10 @@
   --card:  #f7f7f8;
   --border:#e5e7eb;
 
-  /* Accent used by Site Explorer (deep green) */
+  /* Site Explorer accent */
   --accent:       #0a7f24;
   --accent-ink:   #ffffff;
-  --accent-tint:  rgba(10,127,36,.12); /* hover surface */
+  --accent-tint:  rgba(10,127,36,.12);
 }
 
 :root.dark {
@@ -37,119 +37,93 @@
 /* =========================================================
    Base
    ========================================================= */
-* { box-sizing: border-box; }
-html, body { margin:0; padding:0; background:var(--bg); color:var(--fg); }
-a { color:inherit; text-decoration:none; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg)}
+a{color:inherit;text-decoration:none}
 
-/* Generic form controls (kept minimal) */
-button {
-  padding:10px 14px; border-radius:10px; border:1px solid var(--border);
-  background:transparent; color:var(--fg); cursor:pointer;
+button{
+  padding:10px 14px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--fg);cursor:pointer;
 }
-input, textarea, select {
-  width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);
-  background:transparent; color:var(--fg);
+input,textarea,select{
+  width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--fg)
 }
-label { font-weight:600; display:block; margin-top:8px; color:var(--fg); }
-
-/* Simple helpers */
-.grid { display:grid; gap:10px; }
+label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
+.grid{display:grid;gap:10px}
 
 /* =========================================================
-   Header + top menus (unchanged behaviour)
+   Header / Layout
    ========================================================= */
-.header { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; }
-.brand { font-size:20px; margin:0; }
+.header{position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0}
+.brand{font-size:20px;margin:0}
 
-/* Old header menu (kept) */
-.menu {
-  position:absolute; right:12px; top:56px; min-width:200px; padding:8px;
-  border:1px solid var(--border); background:var(--card); border-radius:14px; z-index:50;
+/* Dropdown menu container used by HeaderClient */
+.menu{
+  display:none;               /* hidden by default */
+  position:absolute; right:12px; top:56px; min-width:220px; padding:8px;
+  border:1px solid var(--border); background:var(--card); border-radius:14px; z-index:1000;
   box-shadow:0 6px 24px rgba(0,0,0,.15);
 }
-.menu a, .menu button { display:block; width:100%; text-align:left; padding:10px 12px; border-radius:10px; border:none; background:transparent; }
-.menu a:hover, .menu button:hover { background:rgba(127,127,127,.12); }
+.menu a,.menu button{
+  display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:none;background:transparent
+}
+.menu a:hover,.menu button:hover{background:rgba(127,127,127,.12)}
+
+/* Show the dropdown when header toggles these flags (supports multiple approaches) */
+.header[data-open="true"] .menu,
+.menu.open{display:block}
 
 /* =========================================================
-   Compact card row (Site Explorer look)
+   Subbie/Supplier compact rows
    ========================================================= */
-.partner-row {
-  position:relative; overflow:visible;   /* allow flyouts */
-  display:flex; align-items:center; justify-content:space-between;
-  border:1px solid var(--border); border-radius:12px;
-  background:var(--card);
-  padding:10px 14px;
-  transition: background .2s, border-color .2s, box-shadow .2s;
+.partner-row{
+  position:relative;overflow:visible;
+  display:flex;align-items:center;justify-content:space-between;
+  border:1px solid var(--border);border-radius:12px;background:var(--card);
+  padding:10px 14px;transition:background .2s,border-color .2s,box-shadow .2s
 }
-.partner-row:hover,
-.partner-row:focus-within {
-  background: var(--accent-tint);
-  border-color: var(--accent);
-  z-index: 999; /* make sure flyout sits above next slot */
+.partner-row:hover,.partner-row:focus-within{
+  background:var(--accent-tint);
+  border-color:var(--accent);
+  z-index:999; /* keep flyouts over next slot */
 }
 
-/* Left info */
-.partner-left { flex:1; min-width:0; overflow:hidden; }
-.partner-company {
-  font-weight:600; color:var(--fg);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:420px;
+.partner-left{flex:1;min-width:0;overflow:hidden}
+.partner-company{font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+.partner-name{font-size:.875rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+
+.partner-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+/* Icon button – neutral & compact (ignores global button rules) */
+.action-btn{
+  all:unset;display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:28px;border-radius:10px;border:1px solid var(--border);
+  background:rgba(255,255,255,.02);color:var(--fg);cursor:pointer
 }
-.partner-name {
-  font-size:.875rem; color:var(--muted);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;
-}
+.action-btn:hover{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 
-/* Right action bar */
-.partner-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
-
-/* Icon button that ignores global <button> styles */
-.action-btn {
-  all:unset;
-  display:inline-flex; align-items:center; justify-content:center;
-  width:36px; height:28px; border-radius:10px;
-  border:1px solid var(--border);
-  background: rgba(255,255,255,.02);
-  color: var(--fg);
-  cursor:pointer;
-}
-.action-btn:hover { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
-
-/* =========================================================
-   Partner flyouts (phone/email/maps)
-   ========================================================= */
-.partner-menu { position:relative; display:inline-flex; }
-
-/* hidden by default */
-.partner-flyout {
-  display:none;
-  position:absolute; right:0; top:calc(100% + 4px);   /* tuck right below icon */
-  min-width:160px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:10px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);
-  z-index:9999;
-  padding:6px;
-  flex-direction:column; gap:4px;
-  opacity:0; transform:translateY(-2px);
-  transition: opacity .15s ease, transform .15s ease;
+/* Disabled state (no hover, no pointer, no popup) */
+.action-btn[aria-disabled="true"]{
+  opacity:.35;cursor:default;pointer-events:none;
+  background:rgba(255,255,255,.02);border-color:var(--border);color:var(--fg)
 }
 
-/* keep open when moving from icon to flyout */
+/* Flyouts */
+.partner-menu{position:relative;display:inline-flex}
+.partner-flyout{
+  display:none;position:absolute;right:0;top:calc(100% + 4px);min-width:160px;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:9999;padding:6px;
+  flex-direction:column;gap:4px;opacity:0;transform:translateY(-2px);
+  transition:opacity .15s ease,transform .15s ease
+}
+/* keep open when moving icon → menu and when hovering menu itself */
 .partner-menu:hover .partner-flyout,
-.partner-menu .partner-flyout:hover {
-  display:flex;
-  opacity:1; transform:translateY(0);
+.partner-flyout:hover{display:flex;opacity:1;transform:translateY(0)}
+.partner-flyout::before{content:"";position:absolute;right:0;top:-6px;height:6px;width:100%;background:transparent}
+.partner-flyout button{
+  all:unset;padding:6px 10px;border-radius:8px;color:var(--fg);cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
-
-/* small invisible bridge to avoid flicker on the gap */
-.partner-flyout::before {
-  content:""; position:absolute; right:0; top:-6px; height:6px; width:100%;
-  background:transparent;
-}
-
-.partner-flyout button {
-  all:unset; padding:6px 10px; border-radius:8px; color:var(--fg); cursor:pointer;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.partner-flyout button:hover { background:rgba(10,127,36,.25); color:#fff; }
+.partner-flyout button:hover{background:rgba(10,127,36,.25);color:#fff}
