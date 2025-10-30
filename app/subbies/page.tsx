@@ -20,6 +20,7 @@ type Partner = {
   phone_business?: string | null;
   phone_cell?: string | null;
   google_maps_url?: string | null;
+  address?: string | null; 
 };
 
 // ----------------- Supabase client ---------------
@@ -56,7 +57,7 @@ export default function SubbieSupplierPage() {
       const { data, error } = await supabase
         .from("partners")
         .select(
-          "id, company, contact_last_name, contact_first_name, specialty, email, phone_business, phone_cell, google_maps_url"
+          "id, company, contact_last_name, contact_first_name, specialty, email, phone_business, phone_cell, google_maps_url, address"
         )
         .order("company", { ascending: true });
       if (error) {
@@ -120,125 +121,106 @@ export default function SubbieSupplierPage() {
       </header>
 
       {/* Controls */}
-      <Card>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm opacity-80">Search</label>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Type to filter by Last name, First name or Company"
-              className="px-3 py-2 rounded-lg border bg-white dark:bg-zinc-900 dark:text-zinc-100"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm opacity-80">Specialty</label>
-            <select
-              value={specialtyFilter}
-              onChange={(e) => setSpecialtyFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg border bg-white dark:bg-black dark:text-zinc-100"
+      {/* Compact List */}
+<Card>
+  <CardHeader>
+    <CardTitle>
+      List ({loading ? "…" : filtered.length})
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    {loading ? (
+      <div className="p-4 opacity-70">Loading…</div>
+    ) : filtered.length === 0 ? (
+      <div className="p-4 opacity-70">No results.</div>
+    ) : (
+      <ul className="divide-y">
+        {filtered.map((p) => {
+          const numbers = [p.phone_business, p.phone_cell].filter(Boolean) as string[];
+          return (
+            <li
+              key={p.id}
+              className="flex items-center justify-between px-3 py-2 cursor-pointer transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950 rounded-md"
+              onClick={(e) => {
+                // click σε όλο το row -> edit mode (θα το φτιάξουμε μετά)
+                console.log("Edit mode:", p.id);
+              }}
             >
-              <option value="">All</option>
-              {specialties
-                .filter((s) => s !== "All")
-                .map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-            </select>
-          </div>
-        </CardContent>
-      </Card>
+              {/* Left side */}
+              <div className="truncate min-w-0">
+                <div className="font-medium truncate">{p.company}</div>
+                <div className="text-sm opacity-80 truncate">
+                  {`${p.contact_first_name || ""} ${p.contact_last_name || ""}`.trim()}
+                </div>
+              </div>
 
-      {/* List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            List ({loading ? "…" : filtered.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="p-4 opacity-70">Loading…</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-4 opacity-70">No results.</div>
-          ) : (
-            <ul className="divide-y">
-              {filtered.map((p) => {
-                const numbers = [p.phone_business, p.phone_cell].filter(Boolean) as string[];
-                const hasTwo = numbers.length > 1;
-                return (
-                  <li key={p.id} className="py-2 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{p.company}</div>
-                      <div className="text-sm opacity-80 truncate">
-                        {fullName(p.contact_last_name, p.contact_first_name)}
-                        {p.specialty ? ` • ${p.specialty}` : ""}
-                        {p.email ? ` • ${p.email}` : ""}
-                      </div>
-                    </div>
+              {/* Right side: actions */}
+              <div
+                className="flex items-center gap-2 shrink-0"
+                onClick={(e) => e.stopPropagation()} // για να μην ανοίγει edit κατά λάθος
+              >
+                {/* PHONE */}
+                <div className="relative group">
+                  <button
+                    onClick={() => numbers.length === 1 && window.location.assign(`tel:${numbers[0]}`)}
+                    className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
+                  >
+                    <Phone className="w-4 h-4" />
+                  </button>
 
-                    <div className="flex items-center gap-1 shrink-0 relative">
-                      {/* Phone */}
-                      <Button
-                        aria-label="Call"
-                        onClick={() => (hasTwo ? setPhoneMenuFor(p.id) : openPhone(numbers[0]))}
-                        className="p-2 rounded-2xl"
-                        variant="ghost"
-                      >
-                        <Phone className="w-5 h-5" />
-                      </Button>
-
-                      {/* Email */}
-                      <Button
-                        aria-label="Email"
-                        onClick={() => sendEmail(p.email)}
-                        className="p-2 rounded-2xl"
-                        variant="ghost"
-                      >
-                        <Mail className="w-5 h-5" />
-                      </Button>
-
-                      {/* Maps / Navigation */}
-                      <Button
-                        aria-label="Navigate"
-                        onClick={() => goMaps(p.google_maps_url)}
-                        className="p-2 rounded-2xl"
-                        variant="ghost"
-                      >
-                        <Navigation className="w-5 h-5" />
-                      </Button>
-
-                      {/* Simple phone popover when multiple numbers exist */}
-                      {phoneMenuFor === p.id && hasTwo && (
-                        <div
-                          className="absolute right-0 top-10 z-20 w-56 rounded-xl border shadow-lg bg-white dark:bg-zinc-900 dark:text-zinc-100"
-                          onMouseLeave={() => setPhoneMenuFor(null)}
+                  {numbers.length > 0 && (
+                    <div className="absolute right-0 top-6 hidden group-hover:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-md shadow-lg">
+                      {numbers.map((num) => (
+                        <button
+                          key={num}
+                          onClick={() => window.location.assign(`tel:${num}`)}
+                          className="block px-3 py-1 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-800 w-full text-left"
                         >
-                          <div className="px-3 py-2 text-xs opacity-70">Choose number</div>
-                          {numbers.map((n) => (
-                            <button
-                              key={n}
-                              onClick={() => {
-                                setPhoneMenuFor(null);
-                                openPhone(n);
-                              }}
-                              className="w-full text-left px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                            >
-                              {n}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                          {num}
+                        </button>
+                      ))}
                     </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                  )}
+                </div>
+
+                {/* EMAIL */}
+                {p.email && (
+                  <div className="relative group">
+                    <button
+                      onClick={() => window.location.assign(`mailto:${p.email}`)}
+                      className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </button>
+                    <div className="absolute right-0 top-6 hidden group-hover:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-md shadow-lg px-3 py-1 text-sm whitespace-nowrap">
+                      {p.email}
+                    </div>
+                  </div>
+                )}
+
+                {/* MAPS */}
+                {p.google_maps_url && (
+                  <div className="relative group">
+                    <button
+                      onClick={() => window.open(p.google_maps_url!, "_blank")}
+                      className="p-1.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800 transition"
+                    >
+                      <Navigation className="w-4 h-4" />
+                    </button>
+                    <div className="absolute right-0 top-6 hidden group-hover:block bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-md shadow-lg px-3 py-1 text-sm max-w-xs truncate">
+                      {p.address}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </CardContent>
+</Card>
+
     </div>
   );
 }
