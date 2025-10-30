@@ -191,4 +191,34 @@ label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
   .action-btn { width: 32px; height: 28px; }  /* smaller buttons */
   .partner-flyout { right: -2px; top: calc(100% + 3px); min-width: 150px; }
 }
+/* Default icon size for action buttons */
+.action-icon { width: 18px; height: 18px; }
+
+/* ===== Mobile tweaks (≤ 640px) ===== */
+@media (max-width: 640px) {
+  .partner-row { padding: 8px 10px; }
+
+  /* keep TWO lines: company (line 1) + name (line 2), just smaller */
+  .partner-company {
+    font-size: 0.95rem;
+    max-width: calc(100% - 130px);   /* leave room for buttons */
+  }
+  .partner-name {
+    display: block;                   /* ensure second line shows */
+    margin-top: 2px;
+    font-size: 0.82rem;
+    max-width: calc(100% - 130px);   /* same cap as company */
+  }
+
+  .partner-left { min-width: 0; }    /* allow truncation */
+
+  /* buttons: good tap targets but still compact */
+  .partner-actions { gap: 6px; }
+  .action-btn      { width: 34px; height: 34px; }  /* taller for touch */
+  .action-icon     { width: 16px; height: 16px; }  /* slightly smaller glyphs */
+
+  /* flyout stays tight on mobile */
+  .partner-flyout { right: -2px; top: calc(100% + 3px); min-width: 150px; }
+}
+
 

@@ -79,7 +79,7 @@ export default function SubbieSupplierPage() {
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
       <header className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Subbie – Supplier</h1>
+        <h1 className="text-2xl font-semibold">Subbies – Suppliers</h1>
         <Button onClick={() => router.push("/subbies/new")}>+ Add New</Button>
       </header>
 
@@ -138,7 +138,7 @@ export default function SubbieSupplierPage() {
                   {hasPhone ? (
                     <div className="partner-menu">
                       <button className="action-btn" aria-label="Call">
-                        <Phone className="w-4 h-4" />
+                        <Phone className="action-icon" />
                       </button>
                       <div className="partner-flyout">
                         {numbers.map((num) => (
@@ -150,7 +150,7 @@ export default function SubbieSupplierPage() {
                     </div>
                   ) : (
                     <button className="action-btn" aria-label="Call" aria-disabled="true">
-                      <Phone className="w-4 h-4" />
+                        <Phone className="action-icon" />
                     </button>
                   )}
 
@@ -158,7 +158,7 @@ export default function SubbieSupplierPage() {
                   {hasEmail ? (
                     <div className="partner-menu">
                       <button className="action-btn" aria-label="Email">
-                        <Mail className="w-4 h-4" />
+                        <Mail className="action-icon" />
                       </button>
                       <div className="partner-flyout">
                         <button onClick={() => window.location.assign(`mailto:${p.email}`)}>{p.email}</button>
@@ -166,7 +166,7 @@ export default function SubbieSupplierPage() {
                     </div>
                   ) : (
                     <button className="action-btn" aria-label="Email" aria-disabled="true">
-                      <Mail className="w-4 h-4" />
+                      <Mail className="action-icon" />
                     </button>
                   )}
 
@@ -174,7 +174,7 @@ export default function SubbieSupplierPage() {
                   {hasMap ? (
                     <div className="partner-menu">
                       <button className="action-btn" aria-label="Navigate">
-                        <Navigation className="w-4 h-4" />
+                        <Navigation className="action-icon" />
                       </button>
                       <div className="partner-flyout" style={{ maxWidth: 260 }}>
                         <button onClick={() => window.open(p.google_maps_url!, "_blank")}>{p.address}</button>
@@ -182,7 +182,7 @@ export default function SubbieSupplierPage() {
                     </div>
                   ) : (
                     <button className="action-btn" aria-label="Navigate" aria-disabled="true">
-                      <Navigation className="w-4 h-4" />
+                      <Navigation className="action-icon" />
                     </button>
                   )}
                 </div>
