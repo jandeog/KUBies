@@ -127,3 +127,29 @@ label{font-weight:600;display:block;margin-top:8px;color:var(--fg)}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
 .partner-flyout button:hover{background:rgba(10,127,36,.25);color:#fff}
+/* -------- Dark native <select> for Specialty filter -------- */
+.select--dark {
+  background-color: #000;     /* field background */
+  color: #fff;                /* field text */
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  appearance: auto;
+}
+
+/* Make the opened list black too (widely supported) */
+.select--dark option,
+.select--dark optgroup {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Hint browsers to use dark UI chrome for the popup */
+.select--dark { color-scheme: dark; }
+
+/* Focus ring in your accent */
+.select--dark:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Optional: darker scrollbar inside the popup on WebKit */
+.select--dark::-webkit-scrollbar { width: 10px; }
+.select--dark::-webkit-scrollbar-track { background: #000; }
+.select--dark::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 6px; }

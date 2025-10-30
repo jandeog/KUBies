@@ -54,14 +54,15 @@ export default function SubbieSupplierPage() {
     })();
   }, []);
 
-  const specialties = React.useMemo(() => {
-    const set = new Set<string>();
-    partners.forEach((p) => {
-      const s = (p.specialty || "").trim();
-      if (s) set.add(s);
-    });
-    return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
-  }, [partners]);
+ const specialties = React.useMemo(() => {
+  const set = new Set<string>();
+  partners.forEach((p) => {
+    const s = (p.specialty || "").trim();
+    if (s && s.toLowerCase() !== "nan") set.add(s);
+  });
+  return ["All", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+}, [partners]);
+
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -93,6 +94,19 @@ export default function SubbieSupplierPage() {
           onChange={(e) => setSpecialtyFilter(e.target.value)}
           aria-label="Specialty"
         >
+          <select
+  className="select--dark"
+  value={specialtyFilter}
+  onChange={(e) => setSpecialtyFilter(e.target.value)}
+  aria-label="Specialty"
+>
+  {specialties.map((s) => (
+    <option key={s} value={s === "All" ? "" : s}>
+      {s}
+    </option>
+  ))}
+</select>
+
           {specialties.map((s) => (
             <option key={s} value={s === "All" ? "" : s}>
               {s}
