@@ -82,38 +82,29 @@ export default function SubbieSupplierPage() {
         <Button>+ Add New</Button>
       </header>
 
-      {/* Search + Specialty filter */}
-      <div className="grid" style={{ gridTemplateColumns: "1fr 220px", gap: 10 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by company, last name or first name…"
-        />
-        <select
-          value={specialtyFilter}
-          onChange={(e) => setSpecialtyFilter(e.target.value)}
-          aria-label="Specialty"
-        >
-          <select
-  className="select--dark"
-  value={specialtyFilter}
-  onChange={(e) => setSpecialtyFilter(e.target.value)}
-  aria-label="Specialty"
->
-  {specialties.map((s) => (
-    <option key={s} value={s === "All" ? "" : s}>
-      {s}
-    </option>
-  ))}
-</select>
+{/* Search + Specialty filter */}
+<div className="grid" style={{ gridTemplateColumns: "1fr 220px", gap: 10 }}>
+  <input
+    value={query}
+    onChange={(e) => setQuery(e.target.value)}
+    placeholder="Search by company, last name or first name…"
+  />
 
-          {specialties.map((s) => (
-            <option key={s} value={s === "All" ? "" : s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </div>
+  {/* ONE select only */}
+  <select
+    className="select--dark"
+    value={specialtyFilter}
+    onChange={(e) => setSpecialtyFilter(e.target.value)}
+    aria-label="Specialty"
+  >
+    {specialties.map((s) => (
+      <option key={s} value={s === "All" ? "" : s}>
+        {s}
+      </option>
+    ))}
+  </select>
+</div>
+
 
       {/* List */}
       <div className="grid gap-2">
