@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
-import { MapPin, Archive, Trash2, Search } from 'lucide-react';
+import { MapPin, Archive, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type Site = {
@@ -120,32 +120,31 @@ export default function SitesClient() {
         <Button onClick={startAdd}>+ Add New</Button>
       </header>
 
-{/* Controls — plain row, no slot/hover */}
-<div className="flex items-center gap-4 px-1">
-  {/* Big search input */}
-  <div className="relative flex-1">
-    <Search
-      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
-      aria-hidden="true"
-    />
-    <input
-      className="w-full rounded-lg border px-4 pl-10 h-11 text-base"
-      placeholder="Search sites..."
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
-    />
-  </div>
+{/* Controls — plain row, larger input, checkbox closer to input */}
+<div className="px-1">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+    {/* Bigger search input (no icon) */}
+    <div className="w-full sm:w-[640px]">
+      <input
+        className="w-full h-11 rounded-lg border px-4 text-base"
+        placeholder="Search sites..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+    </div>
 
-  {/* Checkbox + label, pinned to the right */}
-  <label className="shrink-0 inline-flex items-center gap-2 whitespace-nowrap">
-    <input
-      type="checkbox"
-      checked={showArchived}
-      onChange={(e) => setShowArchived(e.target.checked)}
-    />
-    <span>Show archived</span>
-  </label>
+    {/* Checkbox + label, immediately to the right on desktop */}
+    <label className="inline-flex items-center gap-2 whitespace-nowrap">
+      <input
+        type="checkbox"
+        checked={showArchived}
+        onChange={(e) => setShowArchived(e.target.checked)}
+      />
+      <span>Show archived</span>
+    </label>
+  </div>
 </div>
+
 
 
       {/* List (kept Subbies feel: partner-row + action-btn classes) */}
