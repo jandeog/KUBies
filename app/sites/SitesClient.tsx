@@ -120,26 +120,34 @@ export default function SitesClient() {
         <Button onClick={startAdd}>+ Add New</Button>
       </header>
 
-      {/* Controls — icon left, input width constrained, label on the right */}
-      <div className="partner-row" style={{ padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div className="relative flex-1 max-w-[720px]">
-          <Search className="action-icon" style={{ position: 'absolute', left: 12, top: 10, opacity: .5 }} />
-          <input
-            className="pl-9 w-full"
-            placeholder="Search sites..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <label className="ml-auto flex items-center gap-2 whitespace-nowrap">
-          <input
-            type="checkbox"
-            checked={showArchived}
-            onChange={(e) => setShowArchived(e.target.checked)}
-          />
-          <span>Show archived</span>
-        </label>
-      </div>
+{/* Controls — input + checkbox on one line */}
+<div className="partner-row px-3 py-3">
+  <div className="flex items-center gap-3">
+    {/* Search input */}
+    <div className="relative grow max-w-[640px]">
+      <Search
+        className="action-icon pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
+        aria-hidden="true"
+      />
+      <input
+        className="pl-9 w-full"
+        placeholder="Search sites..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+    </div>
+
+    {/* Checkbox + label (don’t let them wrap or drift) */}
+    <label className="shrink-0 inline-flex items-center gap-2 whitespace-nowrap">
+      <input
+        type="checkbox"
+        checked={showArchived}
+        onChange={(e) => setShowArchived(e.target.checked)}
+      />
+      <span>Show archived</span>
+    </label>
+  </div>
+</div>
 
       {/* List (kept Subbies feel: partner-row + action-btn classes) */}
       <div className="grid gap-2 partners-list">
