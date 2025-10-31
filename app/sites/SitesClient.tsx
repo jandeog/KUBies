@@ -23,8 +23,9 @@ export default function SitesClient() {
   const [query, setQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
 
-  // Inline form state (no tabs)
+  // Inline form (no tabs)
   const [editing, setEditing] = useState<Site | null>(null);
+  const [saving, setSaving] = useState(false);
   const formRef = useRef<HTMLDivElement | null>(null);
 
   const empty: Site = {
@@ -47,7 +48,6 @@ export default function SitesClient() {
     if (!error && data) setSites(data as Site[]);
     setLoading(false);
   }
-
   useEffect(() => { load(); }, []);
 
   const filtered = useMemo(() => {
@@ -71,6 +71,8 @@ export default function SitesClient() {
 
   async function save(site: Site) {
     if (!site.title.trim()) return alert('Title is required');
+
+    setSaving(true);
     const payload = {
       title: site.title.trim(),
       address: (site.address || '').trim() || null,
@@ -80,15 +82,19 @@ export default function SitesClient() {
       tax_office: (site.tax_office || '').trim() || null,
       archived: !!site.archived,
     };
-    if (site.id) {
-      const { error } = await sb.from('sites').update(payload).eq('id', site.id);
-      if (error) return alert(error.message);
-    } else {
-      const { error } = await sb.from('sites').insert(payload);
-      if (error) return alert(error.message);
+    try {
+      if (site.id) {
+        const { error } = await sb.from('sites').update(payload).eq('id', site.id);
+        if (error) throw error;
+      } else {
+        const { error } = await sb.from('sites').insert(payload);
+        if (error) throw error;
+      }
+      setEditing(null);
+      load();
+    } finally {
+      setSaving(false);
     }
-    setEditing(null);
-    load();
   }
 
   async function toggleArchive(site: Site) {
@@ -108,34 +114,34 @@ export default function SitesClient() {
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
-      {/* Header (match Subbies; text button) */}
+      {/* Header */}
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Site Explorer</h1>
         <Button onClick={startAdd}>+ Add New</Button>
       </header>
 
-      {/* Controls (same scheme as Subbies) */}
-      <div className="partner-row" style={{ padding: 12 }}>
-        <div className="relative flex-1">
+      {/* Controls — icon left, input width constrained, label on the right */}
+      <div className="partner-row" style={{ padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="relative flex-1 max-w-[720px]">
           <Search className="action-icon" style={{ position: 'absolute', left: 12, top: 10, opacity: .5 }} />
           <input
-            className="pl-9"
-            placeholder="Search sites…"
+            className="pl-9 w-full"
+            placeholder="Search sites..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <label className="flex items-center gap-2" style={{ marginLeft: 12 }}>
+        <label className="ml-auto flex items-center gap-2 whitespace-nowrap">
           <input
             type="checkbox"
             checked={showArchived}
             onChange={(e) => setShowArchived(e.target.checked)}
           />
-          Show archived
+          <span>Show archived</span>
         </label>
       </div>
 
-      {/* List (Subbies look: partner-row + action-btn; unchanged hover/feel) */}
+      {/* List (kept Subbies feel: partner-row + action-btn classes) */}
       <div className="grid gap-2 partners-list">
         {loading ? (
           <div className="p-4 opacity-70">Loading…</div>
@@ -188,7 +194,7 @@ export default function SitesClient() {
         )}
       </div>
 
-      {/* Inline edit form under the slots (no tabs) */}
+      {/* Inline edit form under the list */}
       <div ref={formRef} />
       {editing && (
         <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -247,14 +253,11 @@ export default function SitesClient() {
           </div>
 
           <div className="md:col-span-2 flex gap-2 justify-end">
-            <button className="action-btn" onClick={cancelForm}>Cancel</button>
-            <button
-              className="action-btn"
-              onClick={() => save(editing || empty)}
-              style={{ background: 'var(--accent)', color: 'var(--accent-ink)', borderColor: 'var(--accent)' }}
-            >
-              Save
-            </button>
+            {/* EXACT Subbies buttons: Cancel (ghost) & Save with loading state */}
+            <Button type="button" variant="ghost" onClick={cancelForm}>Cancel</Button>
+            <Button type="button" onClick={() => save(editing || empty)} disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
           </div>
         </div>
       )}
