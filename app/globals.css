@@ -25,6 +25,13 @@
   --accent-ink:  #ffffff;
   --accent-tint: rgba(10,127,36,.14);
 }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* tiny helpers used by the pages */
+.badge { @apply text-xs px-2 py-0.5 rounded-full border; }
+.card  { @apply rounded-xl border p-3 bg-white; }
 
 /* Respect system dark if user hasn't forced .light */
 @media (prefers-color-scheme: dark) {

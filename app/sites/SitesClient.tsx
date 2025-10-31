@@ -1,53 +1,47 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  MapPin,
+  Archive,
+  Trash2,
+  Plus,
+  Search,
+  FileEdit,
+  RefreshCcw,
+} from 'lucide-react';
 
 type Site = {
   id?: string;
   title: string;
   address?: string | null;
   employer?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
   maps_url?: string | null;
   vat?: string | null;
   tax_office?: string | null;
-  contact_name?: string | null;
-  contact_phone?: string | null;
-  start_date?: string | null;
-  end_date?: string | null;
-  notes?: string | null;
   archived?: boolean;
-  created_at?: string;
-  updated_at?: string;
 };
 
 export default function SitesClient() {
-  // Create Supabase browser client on the client only
   const sb = useMemo(() => supabaseBrowser(), []);
-
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState('');
+  const [query, setQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
-  const [hoveredId, setHoveredId] = useState<string | null>(null); // <-- moved inside component
   const [editing, setEditing] = useState<Site | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const empty: Site = {
     title: '',
     address: '',
     employer: '',
-    latitude: undefined,
-    longitude: undefined,
     maps_url: '',
     vat: '',
     tax_office: '',
-    contact_name: '',
-    contact_phone: '',
-    start_date: '',
-    end_date: '',
-    notes: '',
     archived: false,
   };
 
@@ -64,89 +58,74 @@ export default function SitesClient() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const q = query.trim().toLowerCase();
     return (sites || [])
       .filter((s) => (showArchived ? true : !s.archived))
       .filter((s) => {
-        if (!needle) return true;
-        const hay = [s.title, s.address].join(' ').toLowerCase();
-        return hay.includes(needle);
+        if (!q) return true;
+        const hay = `${s.title} ${s.address || ''}`.toLowerCase();
+        return hay.includes(q);
       });
-  }, [sites, q, showArchived]);
-
-  function startAdd() {
-    setEditing({ ...empty });
-  }
-  function startEdit(site: Site) {
-    setEditing({ ...site });
-  }
-  function cancelEdit() {
-    setEditing(null);
-  }
+  }, [sites, query, showArchived]);
 
   async function save(site: Site) {
-    const payload: any = {
-      ...site,
-      latitude:
-        site.latitude === undefined || site.latitude === null || (site.latitude as any) === ''
-          ? null
-          : Number(site.latitude),
-      longitude:
-        site.longitude === undefined || site.longitude === null || (site.longitude as any) === ''
-          ? null
-          : Number(site.longitude),
-      address: site.address?.trim() || null,
-      employer: site.employer?.trim() || null,
-      maps_url: site.maps_url?.trim() || null,
-      vat: site.vat?.trim() || null,
-      tax_office: site.tax_office?.trim() || null,
-    };
-
-    if (!payload.title?.trim()) return alert('Title is required');
-
+    if (!site.title.trim()) {
+      alert('Title is required');
+      return;
+    }
+    const payload = { ...site };
     if (site.id) {
-      const { error } = await sb.from('sites').update(payload).eq('id', site.id);
-      if (error) return alert(error.message);
+      await sb.from('sites').update(payload).eq('id', site.id);
     } else {
-      const { data, error } = await sb.from('sites').insert(payload).select('id').single();
-      if (error) return alert(error.message);
-      site.id = data?.id;
+      await sb.from('sites').insert(payload);
     }
     setEditing(null);
-    await load();
-  }
-
-  async function remove(id: string | undefined) {
-    if (!id) return;
-    if (!confirm('Delete this site? This cannot be undone.')) return;
-    const { error } = await sb.from('sites').delete().eq('id', id);
-    if (error) return alert(error.message);
-    await load();
+    setAdding(false);
+    load();
   }
 
   async function toggleArchive(site: Site) {
     if (!site.id) return;
-    const { error } = await sb.from('sites').update({ archived: !site.archived }).eq('id', site.id);
-    if (error) return alert(error.message);
-    await load();
+    await sb
+      .from('sites')
+      .update({ archived: !site.archived })
+      .eq('id', site.id);
+    load();
+  }
+
+  async function remove(site: Site) {
+    if (!site.id) return;
+    if (!confirm(`Delete ${site.title}? This cannot be undone.`)) return;
+    await sb.from('sites').delete().eq('id', site.id);
+    load();
   }
 
   return (
-    <div className="grid">
-      <div className="card" style={{ position: 'sticky', top: 0 }}>
-        <h2 style={{ marginTop: 4, marginBottom: 8 }}>Site Explorer</h2>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            placeholder="Search sites…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            style={{ flex: 1, minWidth: 200 }}
-          />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div className="max-w-5xl mx-auto p-4 space-y-6">
+      {/* Header */}
+      <header className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Site Explorer</h1>
+        <Button onClick={() => setAdding((v) => !v)} size="sm">
+          {adding ? <RefreshCcw className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+        </Button>
+      </header>
+
+      {/* Controls */}
+      <Card>
+        <CardContent className="flex flex-col sm:flex-row sm:items-center gap-3 p-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <Input
+              className="pl-9"
+              placeholder="Search sites..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={showArchived}
@@ -154,201 +133,152 @@ export default function SitesClient() {
             />
             Show archived
           </label>
-          <button onClick={startAdd}>+ Add Site</button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {loading && <div className="card">Loading…</div>}
-
-      {!loading &&
-        filtered.map((site) => (
-          <div
-            className="card cursor-pointer"
-            key={site.id}
-            onMouseEnter={() => setHoveredId(site.id!)}
-            onMouseLeave={() => setHoveredId(null)}
-            onClick={() => startEdit(site)} // click row -> edit
-            style={{
-              backgroundColor: hoveredId === site.id ? 'rgba(16, 185, 129, 0.12)' : undefined,
-              transition: 'background-color 120ms ease-in-out',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
-              {/* Compact: title + address */}
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <strong className="truncate">{site.title}</strong>
-                  {site.archived ? <span className="badge">Archived</span> : null}
-                </div>
-                {site.address && (
-                  <div className="truncate" style={{ color: 'var(--muted)', maxWidth: 640 }}>
-                    {site.address}
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                {site.maps_url && (
-                  <a href={site.maps_url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
-                    <button>Open Map</button>
-                  </a>
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    startEdit(site);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    await toggleArchive(site);
-                  }}
-                >
-                  {site.archived ? 'Unarchive' : 'Archive'}
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    remove(site.id);
-                  }}
-                  style={{ borderColor: 'crimson', color: 'crimson' }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-      {editing && (
-        <div className="card">
-          <h3>{editing.id ? 'Edit Site' : 'Add Site'}</h3>
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))' }}>
-            <div>
-              <label>Title *</label>
-              <input
-                value={editing.title || ''}
-                onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-              />
-            </div>
-            <div>
-              <label>Employer</label>
-              <input
-                value={editing.employer || ''}
-                onChange={(e) => setEditing({ ...editing, employer: e.target.value })}
-              />
-            </div>
-            <div>
-              <label>Contact name</label>
-              <input
-                value={editing.contact_name || ''}
-                onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })}
-              />
-            </div>
-            <div>
-              <label>Contact phone</label>
-              <input
-                value={editing.contact_phone || ''}
-                onChange={(e) => setEditing({ ...editing, contact_phone: e.target.value })}
-              />
-            </div>
-            <div style={{ gridColumn: '1/-1' }}>
-              <label>Address</label>
-              <input
-                value={editing.address || ''}
-                onChange={(e) => setEditing({ ...editing, address: e.target.value })}
-              />
-            </div>
-            <div>
-              <label>Latitude</label>
-              <input
-                inputMode="decimal"
-                value={editing.latitude ?? ''}
-                onChange={(e) => setEditing({ ...editing, latitude: e.target.value as any })}
-              />
-            </div>
-            <div>
-              <label>Longitude</label>
-              <input
-                inputMode="decimal"
-                value={editing.longitude ?? ''}
-                onChange={(e) => setEditing({ ...editing, longitude: e.target.value as any })}
-              />
-            </div>
-
-            <div style={{ gridColumn: '1/-1' }}>
-              <label>Google Maps URL (optional)</label>
-              <input
-                value={editing.maps_url || ''}
-                onChange={(e) => setEditing({ ...editing, maps_url: e.target.value })}
-              />
-            </div>
-
-            {/* VAT */}
-            <div>
-              <label>VAT</label>
-              <input
-                value={editing.vat || ''}
-                onChange={(e) => setEditing({ ...editing, vat: e.target.value })}
-              />
-            </div>
-
-            {/* Tax Office */}
-            <div>
-              <label>Tax Office</label>
-              <input
-                value={editing.tax_office || ''}
-                onChange={(e) => setEditing({ ...editing, tax_office: e.target.value })}
-              />
-            </div>
-
-            {/* Dates on the next line (full width row) */}
-            <div
-              style={{
-                gridColumn: '1 / -1',
-                display: 'grid',
-                gap: 16,
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+      {/* Add/Edit Form as tab section */}
+      {(adding || editing) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {editing ? 'Edit Site' : 'Add New Site'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                save(editing || empty);
               }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3"
             >
-              <div>
-                <label>Start date</label>
-                <input
-                  type="date"
-                  value={editing.start_date || ''}
-                  onChange={(e) => setEditing({ ...editing, start_date: e.target.value })}
-                />
-              </div>
-              <div>
-                <label>End date</label>
-                <input
-                  type="date"
-                  value={editing.end_date || ''}
-                  onChange={(e) => setEditing({ ...editing, end_date: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div style={{ gridColumn: '1/-1' }}>
-              <label>Notes</label>
-              <textarea
-                rows={3}
-                value={editing.notes || ''}
-                onChange={(e) => setEditing({ ...editing, notes: e.target.value })}
+              <Input
+                placeholder="Title *"
+                value={editing?.title || ''}
+                onChange={(e) =>
+                  setEditing((prev) => ({ ...(prev || empty), title: e.target.value }))
+                }
               />
-            </div>
-
-            <div style={{ display: 'flex', gap: 8, gridColumn: '1/-1', justifyContent: 'flex-end' }}>
-              <button onClick={cancelEdit}>Cancel</button>
-              <button onClick={() => save(editing!)}>Save</button>
-            </div>
-          </div>
-        </div>
+              <Input
+                placeholder="Address"
+                value={editing?.address || ''}
+                onChange={(e) =>
+                  setEditing((prev) => ({ ...(prev || empty), address: e.target.value }))
+                }
+              />
+              <Input
+                placeholder="Employer"
+                value={editing?.employer || ''}
+                onChange={(e) =>
+                  setEditing((prev) => ({ ...(prev || empty), employer: e.target.value }))
+                }
+              />
+              <Input
+                placeholder="Google Maps URL"
+                value={editing?.maps_url || ''}
+                onChange={(e) =>
+                  setEditing((prev) => ({ ...(prev || empty), maps_url: e.target.value }))
+                }
+              />
+              <Input
+                placeholder="VAT"
+                value={editing?.vat || ''}
+                onChange={(e) =>
+                  setEditing((prev) => ({ ...(prev || empty), vat: e.target.value }))
+                }
+              />
+              <Input
+                placeholder="Tax Office"
+                value={editing?.tax_office || ''}
+                onChange={(e) =>
+                  setEditing((prev) => ({ ...(prev || empty), tax_office: e.target.value }))
+                }
+              />
+              <div className="md:col-span-2 flex gap-2 mt-2">
+                <Button type="submit" size="sm">
+                  Save
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setAdding(false);
+                    setEditing(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
+
+      {/* List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Sites ({loading ? '…' : filtered.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="p-3 text-gray-500">Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-3 text-gray-500">No results found.</div>
+          ) : (
+            <ul className="divide-y">
+              {filtered.map((site) => (
+                <li
+                  key={site.id}
+                  onClick={() => setEditing(site)}
+                  className="py-3 flex items-center justify-between gap-3 hover:bg-emerald-50 rounded-lg px-2 cursor-pointer"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{site.title}</div>
+                    <div className="text-sm opacity-80 truncate">
+                      {site.address}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    {site.maps_url && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(site.maps_url!, '_blank');
+                        }}
+                      >
+                        <MapPin className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleArchive(site);
+                      }}
+                    >
+                      <Archive className={`w-4 h-4 ${site.archived ? 'text-amber-600' : ''}`} />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        remove(site);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
