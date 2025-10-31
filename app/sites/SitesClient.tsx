@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { MapPin, Archive, Trash2, Plus, Search } from 'lucide-react';
 
 type Site = {
@@ -25,8 +28,9 @@ export default function SitesClient() {
   const [query, setQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
 
-  const [editing, setEditing] = useState<Site | null>(null);        // open form inline
-  const formRef = useRef<HTMLDivElement | null>(null);
+  // tabs: flat text with underline
+  const [tab, setTab] = useState<'list' | 'form'>('list');
+  const [editing, setEditing] = useState<Site | null>(null);
 
   const empty: Site = {
     title: '',
@@ -51,7 +55,6 @@ export default function SitesClient() {
     if (!error && data) setSites(data as Site[]);
     setLoading(false);
   }
-
   useEffect(() => { load(); }, []);
 
   const filtered = useMemo(() => {
@@ -63,21 +66,19 @@ export default function SitesClient() {
 
   function startAdd() {
     setEditing({ ...empty });
-    queueMicrotask(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    setTab('form');
   }
-
   function startEdit(site: Site) {
     setEditing({ ...site });
-    queueMicrotask(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    setTab('form');
   }
-
   function cancelForm() {
     setEditing(null);
+    setTab('list');
   }
 
   async function save(site: Site) {
     if (!site.title.trim()) return alert('Title is required');
-
     const payload = {
       title: site.title.trim(),
       address: (site.address || '').trim() || null,
@@ -90,7 +91,6 @@ export default function SitesClient() {
       notes: (site.notes || '').trim() || null,
       archived: !!site.archived,
     };
-
     if (site.id) {
       const { error } = await sb.from('sites').update(payload).eq('id', site.id);
       if (error) return alert(error.message);
@@ -99,6 +99,7 @@ export default function SitesClient() {
       if (error) return alert(error.message);
     }
     setEditing(null);
+    setTab('list');
     load();
   }
 
@@ -122,23 +123,38 @@ export default function SitesClient() {
       {/* Header */}
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Site Explorer</h1>
-        <button
-          onClick={startAdd}
-          className="h-9 w-9 grid place-content-center rounded-lg border transition hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
-          aria-label="Add site"
-          title="Add site"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+        <Button size="icon" onClick={startAdd} aria-label="Add">
+          <Plus className="w-4 h-4" />
+        </Button>
       </header>
 
-      {/* Controls */}
-      <div className="rounded-xl border p-3">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+      {/* Tabs (flat, underline only) */}
+      <nav className="border-b flex items-center gap-6">
+        <button
+          className={`pb-2 -mb-px border-b-2 text-sm ${
+            tab === 'list' ? 'border-emerald-500' : 'border-transparent opacity-70 hover:opacity-100'
+          }`}
+          onClick={() => setTab('list')}
+        >
+          List
+        </button>
+        <button
+          className={`pb-2 -mb-px border-b-2 text-sm ${
+            tab === 'form' ? 'border-emerald-500' : 'border-transparent opacity-70 hover:opacity-100'
+          }`}
+          onClick={() => { if (!editing) setEditing({ ...empty }); setTab('form'); }}
+        >
+          Form
+        </button>
+      </nav>
+
+      {/* Controls (same feel as Subbies) */}
+      <Card>
+        <CardContent className="flex flex-col sm:flex-row sm:items-center gap-3 p-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 opacity-50" />
-            <input
-              className="w-full rounded-lg border px-3 py-2 pl-9"
+            <Search className="absolute left-3 top-2.5 w-4 h-4 opacity-50" />
+            <Input
+              className="pl-9"
               placeholder="Search sites..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -152,177 +168,141 @@ export default function SitesClient() {
             />
             Show archived
           </label>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* List */}
-      <div className="rounded-xl border">
-        <div className="border-b p-3 font-semibold">Sites ({loading ? '…' : filtered.length})</div>
-        <div className="p-2">
-          {loading ? (
-            <div className="p-3 text-gray-500">Loading…</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-3 text-gray-500">No results.</div>
-          ) : (
-            <ul className="space-y-2">
-              {filtered.map((s) => (
-                <li
-                  key={s.id}
-                  onClick={() => startEdit(s)}
-                  className="rounded-lg border p-3 cursor-pointer transition hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                >
-                  <div className="flex items-center justify-between gap-3">
+      {/* LIST TAB */}
+      {tab === 'list' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Sites ({loading ? '…' : filtered.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="p-3 opacity-70">Loading…</div>
+            ) : filtered.length === 0 ? (
+              <div className="p-3 opacity-70">No results.</div>
+            ) : (
+              <ul className="divide-y">
+                {filtered.map((s) => (
+                  <li
+                    key={s.id}
+                    className="py-3 flex items-center justify-between gap-3 cursor-pointer"
+                    onClick={() => startEdit(s)}
+                  >
                     <div className="min-w-0">
                       <div className="font-medium truncate">{s.title}</div>
                       <div className="text-sm opacity-80 truncate">{s.address || '—'}</div>
                     </div>
                     <div className="flex gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {/* Map */}
-                      <button
-                        className="h-9 w-9 grid place-content-center rounded-lg border transition hover:bg-emerald-50 dark:hover:bg-emerald-900/30 disabled:opacity-40"
-                        onClick={() => s.maps_url && window.open(s.maps_url, '_blank')}
-                        disabled={!s.maps_url}
-                        aria-label="Open map"
-                        title="Open map"
-                      >
-                        <MapPin className="h-4 w-4" />
-                      </button>
-                      {/* Archive */}
-                      <button
-                        className="h-9 w-9 grid place-content-center rounded-lg border transition hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                      {s.maps_url && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => window.open(s.maps_url!, '_blank')}
+                          aria-label="Open map"
+                        >
+                          <MapPin className="w-4 h-4" />
+                        </Button>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => toggleArchive(s)}
                         aria-label={s.archived ? 'Unarchive' : 'Archive'}
-                        title={s.archived ? 'Unarchive' : 'Archive'}
                       >
-                        <Archive className="h-4 w-4" />
-                      </button>
-                      {/* Delete */}
-                      <button
-                        className="h-9 w-9 grid place-content-center rounded-lg border transition hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                        <Archive className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => remove(s)}
                         aria-label="Delete"
-                        title="Delete"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Inline form under the list */}
-      <div ref={formRef} />
-      {editing && (
-        <div className="rounded-xl border p-3">
-          <h3 className="text-lg font-semibold mb-3">{editing.id ? 'Edit Site' : 'Add Site'}</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="md:col-span-2">
-              <label className="text-sm">Title *</label>
-              <input
-                className="w-full rounded-lg border px-3 py-2"
-                value={editing.title || ''}
+      {/* FORM TAB */}
+      {tab === 'form' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{editing?.id ? 'Edit Site' : 'Add Site'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={(e) => { e.preventDefault(); save(editing || empty); }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3"
+            >
+              <Input
+                placeholder="Title *"
+                value={editing?.title || ''}
                 onChange={(e) => setEditing((p) => ({ ...(p || empty), title: e.target.value }))}
               />
-            </div>
-
-            <div>
-              <label className="text-sm">Address</label>
-              <input
-                className="w-full rounded-lg border px-3 py-2"
-                value={editing.address || ''}
+              <Input
+                placeholder="Address"
+                value={editing?.address || ''}
                 onChange={(e) => setEditing((p) => ({ ...(p || empty), address: e.target.value }))}
               />
-            </div>
-
-            <div>
-              <label className="text-sm">Employer</label>
-              <input
-                className="w-full rounded-lg border px-3 py-2"
-                value={editing.employer || ''}
+              <Input
+                placeholder="Employer"
+                value={editing?.employer || ''}
                 onChange={(e) => setEditing((p) => ({ ...(p || empty), employer: e.target.value }))}
               />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-sm">Google Maps URL</label>
-              <input
-                className="w-full rounded-lg border px-3 py-2"
-                value={editing.maps_url || ''}
+              <Input
+                placeholder="Google Maps URL"
+                value={editing?.maps_url || ''}
                 onChange={(e) => setEditing((p) => ({ ...(p || empty), maps_url: e.target.value }))}
               />
-            </div>
-
-            <div>
-              <label className="text-sm">VAT</label>
-              <input
-                className="w-full rounded-lg border px-3 py-2"
-                value={editing.vat || ''}
+              <Input
+                placeholder="VAT"
+                value={editing?.vat || ''}
                 onChange={(e) => setEditing((p) => ({ ...(p || empty), vat: e.target.value }))}
               />
-            </div>
-
-            <div>
-              <label className="text-sm">Tax Office</label>
-              <input
-                className="w-full rounded-lg border px-3 py-2"
-                value={editing.tax_office || ''}
+              <Input
+                placeholder="Tax Office"
+                value={editing?.tax_office || ''}
                 onChange={(e) => setEditing((p) => ({ ...(p || empty), tax_office: e.target.value }))}
               />
-            </div>
 
-            {/* Start/End date on the next line after Tax Office */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm">Start date</label>
-                <input
+              {/* Dates below Tax Office */}
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input
                   type="date"
-                  className="w-full rounded-lg border px-3 py-2"
-                  value={editing.start_date || ''}
+                  value={editing?.start_date || ''}
                   onChange={(e) => setEditing((p) => ({ ...(p || empty), start_date: e.target.value }))}
                 />
-              </div>
-              <div>
-                <label className="text-sm">End date</label>
-                <input
+                <Input
                   type="date"
-                  className="w-full rounded-lg border px-3 py-2"
-                  value={editing.end_date || ''}
+                  value={editing?.end_date || ''}
                   onChange={(e) => setEditing((p) => ({ ...(p || empty), end_date: e.target.value }))}
                 />
               </div>
-            </div>
 
-            <div className="md:col-span-2">
-              <label className="text-sm">Notes</label>
-              <textarea
-                rows={3}
-                className="w-full rounded-lg border px-3 py-2"
-                value={editing.notes || ''}
-                onChange={(e) => setEditing((p) => ({ ...(p || empty), notes: e.target.value }))}
-              />
-            </div>
+              <div className="md:col-span-2">
+                <textarea
+                  rows={3}
+                  className="w-full rounded-lg border px-3 py-2"
+                  placeholder="Notes"
+                  value={editing?.notes || ''}
+                  onChange={(e) => setEditing((p) => ({ ...(p || empty), notes: e.target.value }))}
+                />
+              </div>
 
-            <div className="md:col-span-2 flex justify-end gap-2 pt-1">
-              <button
-                onClick={cancelForm}
-                className="rounded-lg border px-3 py-2 transition hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => save(editing || empty)}
-                className="rounded-lg border px-3 py-2 transition hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+              <div className="md:col-span-2 flex gap-2 justify-end">
+                <Button type="button" variant="ghost" onClick={cancelForm}>Cancel</Button>
+                <Button type="submit">Save</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
