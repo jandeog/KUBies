@@ -120,30 +120,35 @@ export default function SitesClient() {
         <Button onClick={startAdd}>+ Add New</Button>
       </header>
 
-{/* Controls — search on top, checkbox underneath (small text) */}
+{/* Controls — plain row, larger input, checkbox closer to input */}
 <div className="px-1">
-  {/* Search input */}
-  <div className="w-full sm:w-[640px]">
-    <input
-      className="w-full h-11 rounded-lg border px-4 text-base"
-      placeholder="Search sites..."
-      value={query}
-      onChange={(e) => setQuery(e.target.value)}
-    />
-  </div>
+  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+    {/* Bigger search input (no icon) */}
+    <div className="w-full sm:w-[640px]">
+      <input
+        className="w-full h-11 rounded-lg border px-4 text-base"
+        placeholder="Search sites..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+    </div>
 
-  {/* Checkbox + label under the input */}
-  <label className="mt-2 inline-flex items-center gap-2 text-xs opacity-80">
-    <input
-      type="checkbox"
-      checked={showArchived}
-      onChange={(e) => setShowArchived(e.target.checked)}
-      className="h-3 w-3"
-    />
-    <span>Show archived</span>
+  {/* Checkbox + label under the input, same line */}
+<div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+  <input
+    id="archivedFilter"
+    type="checkbox"
+    checked={showArchived}
+    onChange={(e) => setShowArchived(e.target.checked)}
+    className="h-3 w-3 inline-block align-middle"
+    style={{ display: 'inline-block' }} // guards against any global 'display:block'
+  />
+  <label htmlFor="archivedFilter" className="select-none">
+    Show archived
   </label>
 </div>
-
+  </div>
+</div>
 
 
 
