@@ -173,34 +173,17 @@ function handleOCRResult(r: any) {
 
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">
-      <header className="flex items-center justify-between gap-3">
-  <h1 className="text-2xl font-semibold">
+<header className="flex items-center justify-between gap-2 flex-wrap">
+  <h1 className="text-xl md:text-2xl font-semibold">
     {isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}
   </h1>
 
-  <div className="flex gap-2 items-center">
-    {/* OCR buttons */}
+  <div className="flex gap-2 items-center flex-shrink-0">
     <OCRLauncher mode="gallery" onResult={handleOCRResult} />
     <OCRLauncher mode="camera" onResult={handleOCRResult} />
-
-    {/* Existing action buttons */}
-    {!isNew && (
-      <Button
-        onClick={onDelete}
-        style={{ background: "#7f0a0a", color: "white", borderColor: "#7f0a0a" }}
-        disabled={saving}
-      >
-        Delete
-      </Button>
-    )}
-    <Button onClick={onCancel} variant="ghost">
-      Cancel
-    </Button>
-    <Button onClick={onSave} disabled={saving}>
-      {saving ? "Saving…" : "Save"}
-    </Button>
   </div>
 </header>
+
 
       {loading ? (
         <div className="p-4 opacity-70">Loading…</div>
