@@ -4,6 +4,8 @@ import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Button from "@/components/ui/button";
+import OCRLauncher from "@/components/ocr/OCRLauncher";
+
 
 type Partner = {
   id?: string;
@@ -62,6 +64,18 @@ export default function PartnerEditorPage() {
     address: "",
     google_maps_url: "",
   });
+function handleOCRResult(r: any) {
+  console.log("OCR result:", r);
+  setForm((prev) => ({
+    ...prev,
+    company: r.company ?? prev.company,
+    contact_first_name: r.name?.split(" ")[0] ?? prev.contact_first_name,
+    contact_last_name: r.name?.split(" ").slice(1).join(" ") ?? prev.contact_last_name,
+    email: r.email ?? prev.email,
+    phone_business: r.phone ?? prev.phone_business,
+    address: r.address ?? prev.address,
+  }));
+}
 
   React.useEffect(() => {
     (async () => {
@@ -160,21 +174,33 @@ export default function PartnerEditorPage() {
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">
       <header className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}</h1>
-        <div className="flex gap-2">
-          {!isNew && (
-            <Button
-              onClick={onDelete}
-              style={{ background: "#7f0a0a", color: "white", borderColor: "#7f0a0a" }}
-              disabled={saving}
-            >
-              Delete
-            </Button>
-          )}
-          <Button onClick={onCancel} variant="ghost">Cancel</Button>
-          <Button onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
-        </div>
-      </header>
+  <h1 className="text-2xl font-semibold">
+    {isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}
+  </h1>
+
+  <div className="flex gap-2 items-center">
+    {/* OCR buttons */}
+    <OCRLauncher mode="gallery" onResult={handleOCRResult} />
+    <OCRLauncher mode="camera" onResult={handleOCRResult} />
+
+    {/* Existing action buttons */}
+    {!isNew && (
+      <Button
+        onClick={onDelete}
+        style={{ background: "#7f0a0a", color: "white", borderColor: "#7f0a0a" }}
+        disabled={saving}
+      >
+        Delete
+      </Button>
+    )}
+    <Button onClick={onCancel} variant="ghost">
+      Cancel
+    </Button>
+    <Button onClick={onSave} disabled={saving}>
+      {saving ? "Saving…" : "Save"}
+    </Button>
+  </div>
+</header>
 
       {loading ? (
         <div className="p-4 opacity-70">Loading…</div>
