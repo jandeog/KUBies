@@ -47,14 +47,36 @@ export async function POST(req: Request) {
 
 
       const result = await model.generateContent([
-        {
-          text: "Extract business card data as structured JSON with these fields: company, first_name, last_name, title, email, phones, address, website. Respond with valid JSON only.",
-        },
-        { inlineData: { mimeType: "image/jpeg", data: base64 } },
-      ]);
+  {
+    text: `Extract all visible business card fields (company, first_name, last_name, title, email, phones, address, website).
+Return **raw JSON only**, no markdown, no explanations.`,
+  },
+  { inlineData: { mimeType: "image/jpeg", data: base64 } },
+]);
+
 
       const text = result.response.text();
-      const parsed = JSON.parse(text);
+      // Clean Gemini output (remove markdown fences or explanation text)
+let cleaned = text.trim();
+
+// Remove ```json ... ``` wrappers if present
+cleaned = cleaned
+  .replace(/```json/i, "")
+  .replace(/```/g, "")
+  .trim();
+
+// Some models prepend text like "Here is the JSON:" → remove that too
+const jsonStart = cleaned.indexOf("{");
+if (jsonStart > 0) cleaned = cleaned.slice(jsonStart);
+
+let parsed;
+try {
+  parsed = JSON.parse(cleaned);
+} catch (err) {
+  console.error("Failed to parse Gemini output:", cleaned);
+  throw err;
+}
+
       return NextResponse.json({ source: "gemini", ...parsed });
     } catch (geminiErr) {
       console.error("Gemini error:", geminiErr);
