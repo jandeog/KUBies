@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     // --- Primary: Gemini 2.5 Flash ---
     try {
       console.log("🔹 Using Gemini 2.5 Flash for OCR parsing...");
-      const model = gemini.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = gemini.getGenerativeModel({ model: "gemini-2.5-pro" });
 
       const result = await model.generateContent([
         {
