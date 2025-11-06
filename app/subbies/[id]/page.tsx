@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Button from "@/components/ui/button";
 import OCRLauncher from "@/components/ocr/OCRLauncher";
-import { ConfidenceBadge } from "@/components/ConfidenceBadge";
 import { OCRConfidenceField } from "@/components/ocr/OCRConfidenceField";
 
 type Partner = {
@@ -54,6 +53,8 @@ export default function PartnerEditorPage() {
   const [saving, setSaving] = useState(false);
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [ocrData, setOcrData] = useState<any>(null);
+  const [parserUsed, setParserUsed] = useState<string | null>(null);
+
   const [form, setForm] = useState<Partner>({
     company: "",
     contact_last_name: "",
@@ -66,18 +67,24 @@ export default function PartnerEditorPage() {
     google_maps_url: "",
   });
 
+  // ✅ Handle Gemini or Vision OCR results
   function handleOCRResult(r: any) {
     setOcrData(r);
-    console.log("OCR structured result:", r);
+    setParserUsed(r.source || "unknown");
+    console.log("📦 OCR structured result:", r);
+
+    const firstPhone =
+      Array.isArray(r.phones) && r.phones.length > 0 ? r.phones[0] : r.phone || "";
 
     setForm((prev) => ({
       ...prev,
-      company: r.company?.value ?? prev.company,
-      contact_first_name: r.first_name?.value ?? prev.contact_first_name,
-      contact_last_name: r.last_name?.value ?? prev.contact_last_name,
-      email: r.email?.value ?? prev.email,
-      phone_business: r.phones?.value?.[0] ?? prev.phone_business,
-      address: r.address?.value ?? prev.address,
+      company: r.company || prev.company,
+      contact_first_name: r.first_name || prev.contact_first_name,
+      contact_last_name: r.last_name || prev.contact_last_name,
+      email: r.email || prev.email,
+      phone_business: firstPhone || prev.phone_business,
+      address: r.address || prev.address,
+      google_maps_url: mapsFromAddress(r.address) || prev.google_maps_url,
     }));
   }
 
@@ -285,7 +292,20 @@ export default function PartnerEditorPage() {
             </div>
           </div>
 
-          <div className="md:col-span-2 flex gap-2 justify-end">
+          <div className="md:col-span-2 flex gap-2 justify-end items-center">
+            {/* Parser badge */}
+            {parserUsed && (
+              <span
+                className={`text-xs px-2 py-1 rounded-full font-medium ${
+                  parserUsed === "gemini"
+                    ? "bg-green-600 text-white"
+                    : "bg-yellow-500 text-black"
+                }`}
+              >
+                {parserUsed === "gemini" ? "Gemini AI Parser" : "Vision Fallback"}
+              </span>
+            )}
+
             {!isNew && (
               <Button
                 type="button"
