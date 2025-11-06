@@ -43,7 +43,8 @@ export async function POST(req: Request) {
 
     // --- Primary: Gemini 1.5 Flash ---
     try {
-      const model = gemini.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+      const model = gemini.getGenerativeModel({ model: "gemini-2.5-flash" });
+
 
       const result = await model.generateContent([
         {
