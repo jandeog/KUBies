@@ -5,14 +5,11 @@ import { Button } from "@/components/ui/button";
 
 type Mode = "gallery" | "camera";
 type OCRResult = {
-  company?: string;
-  first_name?: string;
-  last_name?: string;
-  title?: string;
+  text: string;
   email?: string;
-  phones?: string[];
+  phone?: string;
   address?: string;
-  website?: string;
+  company?: string;
 };
 
 export default function OCRLauncher({
@@ -36,18 +33,23 @@ export default function OCRLauncher({
       const formData = new FormData();
       formData.append("image", file);
 
-      const res = await fetch("/api/ocr/parse", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch("/api/ocr/parse", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("OCR failed");
 
-      if (!res.ok) throw new Error("Parsing failed");
-      const data = await res.json();
-      console.log("AI OCR result:", data);
-      onResult?.(data);
+      const { text } = await res.json();
+
+      // Basic AI-like parsing
+      const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
+      const phone = text.match(/(\+?\d[\d\s\-]{7,}\d)/)?.[0];
+      const address = text.match(/(ΟΔΟΣ|Λεωφ|Οδός|Street|χλμ|TK|ΤΚ).*$/im)?.[0];
+      const company = text.split("\n")[0]?.trim();
+
+      const result: OCRResult = { text, email, phone, address, company };
+      console.log("Vision OCR result:", result);
+      onResult?.(result);
     } catch (err) {
       console.error(err);
-      alert("AI OCR failed. Check console.");
+      alert("Google Vision OCR failed. Check console.");
     } finally {
       setLoading(false);
       if (inputRef.current) inputRef.current.value = "";

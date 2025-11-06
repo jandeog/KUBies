@@ -1,49 +1,45 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export async function POST(req: Request) {
   try {
     const form = await req.formData();
     const file = form.get("image") as File | null;
-    if (!file) {
-      return NextResponse.json({ error: "Missing image" }, { status: 400 });
-    }
+    if (!file) return NextResponse.json({ error: "Missing image" }, { status: 400 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString("base64");
 
-    // 👇 Cast σε any ώστε να αγνοηθούν οι περιοριστικοί τύποι
-    const completion = await (openai as any).chat.completions.create({
-      model: "gpt-5",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Είσαι OCR parser για επαγγελματικές κάρτες και πινακίδες. Επιστρέφεις JSON με πεδία company, first_name, last_name, title, email, phones, address, website.",
-        },
-        {
-          role: "user",
-          content: [
+    const res = await fetch(
+      `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requests: [
             {
-              type: "text",
-              text: "Ανάλυσε την παρακάτω εικόνα και επέστρεψε τα στοιχεία ως JSON.",
-            },
-            {
-              type: "image_url",
-              image_url: `data:image/jpeg;base64,${base64}`,
+              image: { content: base64 },
+              features: [{ type: "TEXT_DETECTION", maxResults: 1 }],
+              imageContext: { languageHints: ["el", "en"] },
             },
           ],
-        },
-      ],
-      response_format: { type: "json_object" },
-    });
+        }),
+      }
+    );
 
-    const content = completion.choices[0]?.message?.content;
-    return NextResponse.json(JSON.parse(content || "{}"));
+    if (!res.ok) {
+      const errTxt = await res.text();
+      throw new Error(`Vision API error: ${errTxt}`);
+    }
+
+    const data = await res.json();
+    const text =
+      data?.responses?.[0]?.fullTextAnnotation?.text ||
+      data?.responses?.[0]?.textAnnotations?.[0]?.description ||
+      "";
+
+    return NextResponse.json({ text });
   } catch (err: any) {
-    console.error("AI OCR error:", err);
+    console.error("Google Vision OCR error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
