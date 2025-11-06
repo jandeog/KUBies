@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import Button from "@/components/ui/button";
 import OCRLauncher from "@/components/ocr/OCRLauncher";
-
+import { ConfidenceBadge } from "@/components/ConfidenceBadge";
+import { OCRConfidenceField } from "@/components/ocr/OCRConfidenceField";
 
 type Partner = {
   id?: string;
@@ -35,7 +36,7 @@ function clean(v?: string | null) {
   const t = String(v).trim();
   if (!t) return null;
   const l = t.toLowerCase();
-  if (l === "nan") return "-";            // normalize to dash
+  if (l === "nan") return "-";
   if (l === "null" || l === "undefined") return null;
   return t;
 }
@@ -49,11 +50,11 @@ export default function PartnerEditorPage() {
   const params = useParams<{ id: string }>();
   const isNew = params.id === "new";
 
-  const [loading, setLoading] = React.useState(true);
-  const [saving, setSaving] = React.useState(false);
-  const [specialties, setSpecialties] = React.useState<string[]>([]);
-
-  const [form, setForm] = React.useState<Partner>({
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [specialties, setSpecialties] = useState<string[]>([]);
+  const [ocrData, setOcrData] = useState<any>(null);
+  const [form, setForm] = useState<Partner>({
     company: "",
     contact_last_name: "",
     contact_first_name: "",
@@ -64,24 +65,24 @@ export default function PartnerEditorPage() {
     address: "",
     google_maps_url: "",
   });
-function handleOCRResult(r: any) {
-  console.log("OCR structured result:", r);
-  setForm((prev) => ({
-    ...prev,
-    company: r.company ?? prev.company,
-    contact_first_name: r.first_name ?? prev.contact_first_name,
-    contact_last_name: r.last_name ?? prev.contact_last_name,
-    email: r.email ?? prev.email,
-    phone_business: r.phones?.[0] ?? prev.phone_business,
-    address: r.address ?? prev.address,
-  }));
-}
 
+  function handleOCRResult(r: any) {
+    setOcrData(r);
+    console.log("OCR structured result:", r);
 
+    setForm((prev) => ({
+      ...prev,
+      company: r.company?.value ?? prev.company,
+      contact_first_name: r.first_name?.value ?? prev.contact_first_name,
+      contact_last_name: r.last_name?.value ?? prev.contact_last_name,
+      email: r.email?.value ?? prev.email,
+      phone_business: r.phones?.value?.[0] ?? prev.phone_business,
+      address: r.address?.value ?? prev.address,
+    }));
+  }
 
   React.useEffect(() => {
     (async () => {
-      // specialties for datalist
       const { data: all } = await supabase.from("partners").select("specialty");
       if (all) {
         const set = new Set<string>();
@@ -175,47 +176,45 @@ function handleOCRResult(r: any) {
 
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">
-<header className="flex items-center justify-between gap-2 flex-wrap">
-  <h1 className="text-xl md:text-2xl font-semibold">
-    {isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}
-  </h1>
-
-  <div className="flex gap-2 items-center flex-shrink-0">
-    <OCRLauncher mode="gallery" onResult={handleOCRResult} />
-    <OCRLauncher mode="camera" onResult={handleOCRResult} />
-  </div>
-</header>
-
+      <header className="flex items-center justify-between gap-2 flex-wrap">
+        <h1 className="text-xl md:text-2xl font-semibold">
+          {isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}
+        </h1>
+        <div className="flex gap-2 items-center flex-shrink-0">
+          <OCRLauncher mode="gallery" onResult={handleOCRResult} />
+          <OCRLauncher mode="camera" onResult={handleOCRResult} />
+        </div>
+      </header>
 
       {loading ? (
         <div className="p-4 opacity-70">Loading…</div>
       ) : (
         <form onSubmit={onSave} className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="md:col-span-2">
-            <label>Company *</label>
-            <input
+            <OCRConfidenceField
+              label="Company"
+              field="company"
+              required
               value={form.company}
-              onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
-              placeholder="Company"
+              ocrData={ocrData}
+              onChange={(val) => setForm((f) => ({ ...f, company: val }))}
             />
           </div>
 
-          <div>
-            <label>First name</label>
-            <input
-              value={form.contact_first_name || ""}
-              onChange={(e) => setForm((f) => ({ ...f, contact_first_name: e.target.value }))}
-              placeholder="First name"
-            />
-          </div>
-          <div>
-            <label>Last name</label>
-            <input
-              value={form.contact_last_name || ""}
-              onChange={(e) => setForm((f) => ({ ...f, contact_last_name: e.target.value }))}
-              placeholder="Last name"
-            />
-          </div>
+          <OCRConfidenceField
+            label="First name"
+            field="first_name"
+            value={form.contact_first_name || ""}
+            ocrData={ocrData}
+            onChange={(val) => setForm((f) => ({ ...f, contact_first_name: val }))}
+          />
+          <OCRConfidenceField
+            label="Last name"
+            field="last_name"
+            value={form.contact_last_name || ""}
+            ocrData={ocrData}
+            onChange={(val) => setForm((f) => ({ ...f, contact_last_name: val }))}
+          />
 
           <div>
             <label>Specialty</label>
@@ -232,24 +231,21 @@ function handleOCRResult(r: any) {
             </datalist>
           </div>
 
-          <div>
-            <label>Email</label>
-            <input
-              type="email"
-              value={form.email || ""}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              placeholder="name@company.com"
-            />
-          </div>
+          <OCRConfidenceField
+            label="Email"
+            field="email"
+            value={form.email || ""}
+            ocrData={ocrData}
+            onChange={(val) => setForm((f) => ({ ...f, email: val }))}
+          />
 
-          <div>
-            <label>Business phone</label>
-            <input
-              value={form.phone_business || ""}
-              onChange={(e) => setForm((f) => ({ ...f, phone_business: e.target.value }))}
-              placeholder="+30…"
-            />
-          </div>
+          <OCRConfidenceField
+            label="Business phone"
+            field="phones"
+            value={form.phone_business || ""}
+            ocrData={ocrData}
+            onChange={(val) => setForm((f) => ({ ...f, phone_business: val }))}
+          />
           <div>
             <label>Cell phone</label>
             <input
@@ -259,14 +255,13 @@ function handleOCRResult(r: any) {
             />
           </div>
 
-          <div className="md:col-span-2">
-            <label>Address</label>
-            <input
-              value={form.address || ""}
-              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-              placeholder="Street, number, city…"
-            />
-          </div>
+          <OCRConfidenceField
+            label="Address"
+            field="address"
+            value={form.address || ""}
+            ocrData={ocrData}
+            onChange={(val) => setForm((f) => ({ ...f, address: val }))}
+          />
 
           <div className="md:col-span-2">
             <label>Google Maps URL</label>
@@ -278,7 +273,12 @@ function handleOCRResult(r: any) {
               />
               <Button
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, google_maps_url: mapsFromAddress(f.address) }))}
+                onClick={() =>
+                  setForm((f) => ({
+                    ...f,
+                    google_maps_url: mapsFromAddress(f.address),
+                  }))
+                }
               >
                 From Address
               </Button>
@@ -296,8 +296,12 @@ function handleOCRResult(r: any) {
                 Delete
               </Button>
             )}
-            <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+            <Button type="button" variant="ghost" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
           </div>
         </form>
       )}
