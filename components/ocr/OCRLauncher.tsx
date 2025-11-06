@@ -35,6 +35,7 @@ export default function OCRLauncher({
       console.log("🔍 OCR API response:", data);
 
       // ✅ Handle based on which engine responded
+      
       if (data.source === "gemini") {
         console.log("✅ Gemini AI parser used!");
         onResult?.(data); // already structured JSON
@@ -48,6 +49,11 @@ export default function OCRLauncher({
         console.error("❌ Unknown OCR source or invalid response:", data);
         alert("OCR error — check console logs.");
       }
+      if (data.source === "vision-blocked") {
+  alert(data.error);
+  return;
+}
+
     } catch (err) {
       console.error("OCRLauncher error:", err);
       alert("AI OCR failed. Check console for details.");
@@ -55,6 +61,7 @@ export default function OCRLauncher({
       setLoading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
+    
   }
 
   return (

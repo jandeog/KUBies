@@ -1,11 +1,58 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@supabase/supabase-js";
 
-// --- Initialize Gemini client ---
 const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+const VISION_LIMIT = 50; // 👈 monthly cap
+
+// --- check + increment Vision usage ---
+async function checkVisionQuota() {
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  // read current counter
+  const { data: existing, error: selError } = await supabase
+    .from("api_usage")
+    .select("*")
+    .eq("month", monthKey)
+    .maybeSingle();
+
+  if (selError) throw selError;
+
+  if (existing && existing.count >= VISION_LIMIT) {
+    console.warn("⚠️ Vision API monthly limit reached");
+    return false;
+  }
+
+  // increment or insert
+  if (existing) {
+    await supabase
+      .from("api_usage")
+      .update({ count: existing.count + 1 })
+      .eq("month", monthKey);
+  } else {
+    await supabase.from("api_usage").insert({ month: monthKey, count: 1 });
+  }
+
+  return true;
+}
 
 // --- Vision fallback helper ---
 async function callVisionFallback(base64: string) {
+  // ✅ check quota first
+  const allowed = await checkVisionQuota();
+  if (!allowed) {
+    return {
+      source: "vision-blocked",
+      error: "Vision API monthly limit reached (50).",
+    };
+  }
+
   try {
     const res = await fetch(
       `https://vision.googleapis.com/v1/images:annotate?key=${process.env.GOOGLE_API_KEY}`,
@@ -37,44 +84,31 @@ async function callVisionFallback(base64: string) {
   }
 }
 
-// --- Main route ---
+// --- main POST handler (Gemini first, Vision fallback) ---
 export async function POST(req: Request) {
   try {
     const form = await req.formData();
     const file = form.get("image") as File | null;
-
-    if (!file) {
+    if (!file)
       return NextResponse.json({ error: "Missing image" }, { status: 400 });
-    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString("base64");
 
-    // --- Primary: Gemini 2.5 Flash ---
     try {
-      console.log("🔹 Using Gemini 2.5 Flash for OCR parsing...");
-      const model = gemini.getGenerativeModel({ model: "gemini-2.5-pro" });
-
+      const model = gemini.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent([
         {
-          text: `Extract all visible business card fields:
-          company, first_name, last_name, title, email, phones, address, website.
-          Return **raw JSON only** (no markdown, no commentary).`,
+          text: `Extract business card data (company, first_name, last_name, title, email, phones, address, website).
+Return raw JSON only.`,
         },
         { inlineData: { mimeType: "image/jpeg", data: base64 } },
       ]);
 
       const text = result?.response?.text?.() || "";
+      if (!text.trim()) throw new Error("Empty Gemini response");
 
-      // If Gemini returned nothing → fallback
-      if (!text.trim()) {
-        console.warn("⚠️ Gemini returned empty output — using Vision fallback.");
-        const fallback = await callVisionFallback(base64);
-        return NextResponse.json(fallback);
-      }
-
-      // --- Clean Gemini output ---
-      let cleaned = text.trim()
+      let cleaned = text
         .replace(/```json/i, "")
         .replace(/```/g, "")
         .trim();
@@ -82,25 +116,15 @@ export async function POST(req: Request) {
       const jsonStart = cleaned.indexOf("{");
       if (jsonStart > 0) cleaned = cleaned.slice(jsonStart);
 
-      let parsed: any;
-      try {
-        parsed = JSON.parse(cleaned);
-      } catch (err) {
-        console.error("⚠️ Failed to parse Gemini output:", cleaned);
-        const fallback = await callVisionFallback(base64);
-        return NextResponse.json(fallback);
-      }
-
-      console.log("✅ Gemini parsing successful.");
+      const parsed = JSON.parse(cleaned);
       return NextResponse.json({ source: "gemini", ...parsed });
-    } catch (geminiErr) {
-      console.error("Gemini error:", geminiErr);
-      console.log("→ Falling back to Vision API...");
+    } catch (err) {
+      console.error("Gemini failed, switching to Vision:", err);
       const fallback = await callVisionFallback(base64);
       return NextResponse.json(fallback);
     }
   } catch (err: any) {
     console.error("AI OCR route error:", err);
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
