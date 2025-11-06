@@ -2,15 +2,10 @@
 import React, { useRef, useState } from "react";
 import { Camera, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { parseVisionText, ParsedContact } from "@/lib/parseVisionText";
 
 type Mode = "gallery" | "camera";
-type OCRResult = {
-  text: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  company?: string;
-};
+type OCRResult = ParsedContact; // συγχρονισμένο με το parsing model
 
 export default function OCRLauncher({
   mode = "gallery",
@@ -37,16 +32,9 @@ export default function OCRLauncher({
       if (!res.ok) throw new Error("OCR failed");
 
       const { text } = await res.json();
-
-      // Basic AI-like parsing
-      const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
-      const phone = text.match(/(\+?\d[\d\s\-]{7,}\d)/)?.[0];
-      const address = text.match(/(ΟΔΟΣ|Λεωφ|Οδός|Street|χλμ|TK|ΤΚ).*$/im)?.[0];
-      const company = text.split("\n")[0]?.trim();
-
-      const result: OCRResult = { text, email, phone, address, company };
-      console.log("Vision OCR result:", result);
-      onResult?.(result);
+      const parsed = parseVisionText(text);
+      console.log("Parsed OCR:", parsed);
+      onResult?.(parsed);
     } catch (err) {
       console.error(err);
       alert("Google Vision OCR failed. Check console.");

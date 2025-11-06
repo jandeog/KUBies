@@ -65,17 +65,19 @@ export default function PartnerEditorPage() {
     google_maps_url: "",
   });
 function handleOCRResult(r: any) {
-  console.log("OCR result:", r);
+  console.log("OCR structured result:", r);
   setForm((prev) => ({
     ...prev,
     company: r.company ?? prev.company,
-    contact_first_name: r.name?.split(" ")[0] ?? prev.contact_first_name,
-    contact_last_name: r.name?.split(" ").slice(1).join(" ") ?? prev.contact_last_name,
+    contact_first_name: r.first_name ?? prev.contact_first_name,
+    contact_last_name: r.last_name ?? prev.contact_last_name,
     email: r.email ?? prev.email,
-    phone_business: r.phone ?? prev.phone_business,
+    phone_business: r.phones?.[0] ?? prev.phone_business,
     address: r.address ?? prev.address,
   }));
 }
+
+
 
   React.useEffect(() => {
     (async () => {
