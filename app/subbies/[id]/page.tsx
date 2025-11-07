@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import Button from "@/components/ui/button";
 import OCRLauncher from "@/components/ocr/OCRLauncher";
 import { OCRConfidenceField } from "@/components/ocr/OCRConfidenceField";
-import { Globe } from "lucide-react";
+import { Globe, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -53,6 +53,16 @@ function mapsFromAddress(addr?: string | null) {
   )}`;
 }
 
+// ✅ helper for green flash animation
+function flashGreen(selector: string) {
+  const el = document.querySelector<HTMLInputElement>(selector);
+  if (!el) return;
+  el.classList.add("bg-green-200", "transition-colors", "duration-700");
+  setTimeout(() => {
+    el.classList.remove("bg-green-200");
+  }, 2000);
+}
+
 export default function PartnerEditorPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -77,7 +87,7 @@ export default function PartnerEditorPage() {
     google_maps_url: "",
   });
 
-  // ✅ OCR results (Gemini or Vision)
+  // ✅ Handle OCR results (Gemini or Vision)
   function handleOCRResult(r: any) {
     setOcrData(r);
     setParserUsed(r.source || "unknown");
@@ -86,16 +96,21 @@ export default function PartnerEditorPage() {
     const firstPhone =
       Array.isArray(r.phones) && r.phones.length > 0 ? r.phones[0] : r.phone || "";
 
-    setForm((prev) => ({
-      ...prev,
-      company: r.company || prev.company,
-      contact_first_name: r.first_name || prev.contact_first_name,
-      contact_last_name: r.last_name || prev.contact_last_name,
-      email: r.email || prev.email,
-      phone_business: firstPhone || prev.phone_business,
-      address: r.address || prev.address,
-      google_maps_url: mapsFromAddress(r.address) || prev.google_maps_url,
-    }));
+    const updates: any = {
+      company: r.company,
+      contact_first_name: r.first_name,
+      contact_last_name: r.last_name,
+      email: r.email,
+      phone_business: firstPhone,
+      address: r.address,
+      google_maps_url: mapsFromAddress(r.address),
+    };
+
+    Object.keys(updates).forEach((k) => {
+      if (updates[k]) flashGreen(`[name='${k}']`);
+    });
+
+    setForm((prev) => ({ ...prev, ...updates }));
   }
 
   // ✅ Heuristic Search (Gemini 2.5 Pro)
@@ -119,19 +134,11 @@ export default function PartnerEditorPage() {
         return;
       }
 
-      const updated: any = {};
-      Object.keys(data).forEach((key) => {
-        if (data[key] && data[key] !== form[key as keyof typeof form]) {
-          updated[key] = data[key];
-          const el = document.querySelector<HTMLInputElement>(`[name='${key}']`);
-          if (el) {
-            el.classList.add("bg-green-100");
-            setTimeout(() => el.classList.remove("bg-green-100"), 2500);
-          }
-        }
+      Object.keys(data).forEach((k) => {
+        if (data[k]) flashGreen(`[name='${k}']`);
       });
 
-      setForm((prev) => ({ ...prev, ...updated }));
+      setForm((prev) => ({ ...prev, ...data }));
     } catch (err) {
       console.error(err);
       alert("Gemini Heuristic Search failed.");
@@ -140,6 +147,7 @@ export default function PartnerEditorPage() {
     }
   }
 
+  // ✅ Load existing subbie
   React.useEffect(() => {
     (async () => {
       const { data: all } = await supabase.from("partners").select("specialty");
@@ -241,7 +249,7 @@ export default function PartnerEditorPage() {
           {isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}
         </h1>
         <div className="flex gap-2 items-center flex-shrink-0">
-          {/* 🌐 Heuristic Search Button */}
+          {/* 🌐 Heuristic Search */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -250,8 +258,13 @@ export default function PartnerEditorPage() {
                   variant="outline"
                   onClick={handleHeuristicSearch}
                   disabled={loadingSearch}
+                  className="relative"
                 >
-                  {loadingSearch ? "…" : <Globe size={16} />}
+                  {loadingSearch ? (
+                    <Loader2 className="animate-spin w-4 h-4" />
+                  ) : (
+                    <Globe size={16} />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
@@ -260,7 +273,10 @@ export default function PartnerEditorPage() {
             </Tooltip>
           </TooltipProvider>
 
+          {/* 📁 Gallery OCR */}
           <OCRLauncher mode="gallery" onResult={handleOCRResult} />
+
+          {/* 📷 Camera OCR */}
           <OCRLauncher mode="camera" onResult={handleOCRResult} />
         </div>
       </header>
@@ -269,7 +285,6 @@ export default function PartnerEditorPage() {
         <div className="p-4 opacity-70">Loading…</div>
       ) : (
         <form onSubmit={onSave} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* --- Inputs --- */}
           <div className="md:col-span-2">
             <OCRConfidenceField
               label="Company"
@@ -370,7 +385,6 @@ export default function PartnerEditorPage() {
             </div>
           </div>
 
-          {/* --- Footer with badge and buttons --- */}
           <div className="md:col-span-2 flex gap-2 justify-end items-center">
             {parserUsed && (
               <span

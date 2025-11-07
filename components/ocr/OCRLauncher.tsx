@@ -1,8 +1,14 @@
 "use client";
 import React, { useRef, useState } from "react";
-import { Camera, Image } from "lucide-react";
+import { Camera, Image, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { parseVisionText, ParsedContact } from "@/lib/parseVisionText";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Mode = "gallery" | "camera";
 type OCRResult = ParsedContact;
@@ -34,26 +40,18 @@ export default function OCRLauncher({
       const data = await res.json();
       console.log("🔍 OCR API response:", data);
 
-      // ✅ Handle based on which engine responded
-      
       if (data.source === "gemini") {
         console.log("✅ Gemini AI parser used!");
-        onResult?.(data); // already structured JSON
+        onResult?.(data);
       } else if (data.source === "vision") {
         console.warn("⚠️ Gemini failed — using Vision OCR fallback");
         const text = data.text || "";
         const parsed = parseVisionText(text);
-        console.log("Parsed Vision OCR:", parsed);
         onResult?.(parsed);
       } else {
         console.error("❌ Unknown OCR source or invalid response:", data);
         alert("OCR error — check console logs.");
       }
-      if (data.source === "vision-blocked") {
-  alert(data.error);
-  return;
-}
-
     } catch (err) {
       console.error("OCRLauncher error:", err);
       alert("AI OCR failed. Check console for details.");
@@ -61,8 +59,10 @@ export default function OCRLauncher({
       setLoading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
-    
   }
+
+  const label = mode === "camera" ? "Camera OCR" : "Gallery OCR";
+  const Icon = mode === "camera" ? Camera : Image;
 
   return (
     <>
@@ -74,9 +74,29 @@ export default function OCRLauncher({
         style={{ display: "none" }}
         onChange={handleFile}
       />
-      <Button onClick={handleSelect} size="sm" variant="outline">
-        {loading ? "..." : mode === "camera" ? <Camera size={16} /> : <Image size={16} />}
-      </Button>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={handleSelect}
+              size="sm"
+              variant="outline"
+              disabled={loading}
+              className="relative"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin w-4 h-4" />
+              ) : (
+                <Icon size={16} />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            {label}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </>
   );
 }
