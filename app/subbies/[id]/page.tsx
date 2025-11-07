@@ -6,6 +6,13 @@ import { createClient } from "@supabase/supabase-js";
 import Button from "@/components/ui/button";
 import OCRLauncher from "@/components/ocr/OCRLauncher";
 import { OCRConfidenceField } from "@/components/ocr/OCRConfidenceField";
+import { Globe } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Partner = {
   id?: string;
@@ -41,7 +48,9 @@ function clean(v?: string | null) {
 }
 function mapsFromAddress(addr?: string | null) {
   if (isNA(addr)) return null;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(String(addr).trim())}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    String(addr).trim()
+  )}`;
 }
 
 export default function PartnerEditorPage() {
@@ -54,6 +63,7 @@ export default function PartnerEditorPage() {
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [ocrData, setOcrData] = useState<any>(null);
   const [parserUsed, setParserUsed] = useState<string | null>(null);
+  const [loadingSearch, setLoadingSearch] = useState(false);
 
   const [form, setForm] = useState<Partner>({
     company: "",
@@ -67,7 +77,7 @@ export default function PartnerEditorPage() {
     google_maps_url: "",
   });
 
-  // ✅ Handle Gemini or Vision OCR results
+  // ✅ OCR results (Gemini or Vision)
   function handleOCRResult(r: any) {
     setOcrData(r);
     setParserUsed(r.source || "unknown");
@@ -86,6 +96,48 @@ export default function PartnerEditorPage() {
       address: r.address || prev.address,
       google_maps_url: mapsFromAddress(r.address) || prev.google_maps_url,
     }));
+  }
+
+  // ✅ Heuristic Search (Gemini 2.5 Pro)
+  async function handleHeuristicSearch() {
+    setLoadingSearch(true);
+    try {
+      const known = form;
+      const missing = Object.fromEntries(
+        Object.entries(form).filter(([_, v]) => !v || v === "")
+      );
+
+      const res = await fetch("/api/heuristicSearch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ known, missing }),
+      });
+      const data = await res.json();
+
+      if (data.message || Object.keys(data).length === 0) {
+        alert("No extra information found over Gemini AI Search.");
+        return;
+      }
+
+      const updated: any = {};
+      Object.keys(data).forEach((key) => {
+        if (data[key] && data[key] !== form[key as keyof typeof form]) {
+          updated[key] = data[key];
+          const el = document.querySelector<HTMLInputElement>(`[name='${key}']`);
+          if (el) {
+            el.classList.add("bg-green-100");
+            setTimeout(() => el.classList.remove("bg-green-100"), 2500);
+          }
+        }
+      });
+
+      setForm((prev) => ({ ...prev, ...updated }));
+    } catch (err) {
+      console.error(err);
+      alert("Gemini Heuristic Search failed.");
+    } finally {
+      setLoadingSearch(false);
+    }
   }
 
   React.useEffect(() => {
@@ -144,7 +196,8 @@ export default function PartnerEditorPage() {
       phone_business: clean(form.phone_business),
       phone_cell: clean(form.phone_cell),
       address: clean(form.address),
-      google_maps_url: clean(form.google_maps_url) ?? mapsFromAddress(form.address),
+      google_maps_url:
+        clean(form.google_maps_url) ?? mapsFromAddress(form.address),
     };
 
     const { error } = isNew
@@ -188,6 +241,25 @@ export default function PartnerEditorPage() {
           {isNew ? "Add Subbie/Supplier" : "Edit Subbie/Supplier"}
         </h1>
         <div className="flex gap-2 items-center flex-shrink-0">
+          {/* 🌐 Heuristic Search Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleHeuristicSearch}
+                  disabled={loadingSearch}
+                >
+                  {loadingSearch ? "…" : <Globe size={16} />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Heuristic Search
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <OCRLauncher mode="gallery" onResult={handleOCRResult} />
           <OCRLauncher mode="camera" onResult={handleOCRResult} />
         </div>
@@ -197,6 +269,7 @@ export default function PartnerEditorPage() {
         <div className="p-4 opacity-70">Loading…</div>
       ) : (
         <form onSubmit={onSave} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* --- Inputs --- */}
           <div className="md:col-span-2">
             <OCRConfidenceField
               label="Company"
@@ -226,6 +299,7 @@ export default function PartnerEditorPage() {
           <div>
             <label>Specialty</label>
             <input
+              name="specialty"
               value={form.specialty || ""}
               onChange={(e) => setForm((f) => ({ ...f, specialty: e.target.value }))}
               list="specialty-options"
@@ -256,6 +330,7 @@ export default function PartnerEditorPage() {
           <div>
             <label>Cell phone</label>
             <input
+              name="phone_cell"
               value={form.phone_cell || ""}
               onChange={(e) => setForm((f) => ({ ...f, phone_cell: e.target.value }))}
               placeholder="+30…"
@@ -274,8 +349,11 @@ export default function PartnerEditorPage() {
             <label>Google Maps URL</label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 140px", gap: 10 }}>
               <input
+                name="google_maps_url"
                 value={form.google_maps_url || ""}
-                onChange={(e) => setForm((f) => ({ ...f, google_maps_url: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, google_maps_url: e.target.value }))
+                }
                 placeholder="https://www.google.com/maps/…"
               />
               <Button
@@ -292,8 +370,8 @@ export default function PartnerEditorPage() {
             </div>
           </div>
 
+          {/* --- Footer with badge and buttons --- */}
           <div className="md:col-span-2 flex gap-2 justify-end items-center">
-            {/* Parser badge */}
             {parserUsed && (
               <span
                 className={`text-xs px-2 py-1 rounded-full font-medium ${
@@ -310,7 +388,11 @@ export default function PartnerEditorPage() {
               <Button
                 type="button"
                 onClick={onDelete}
-                style={{ background: "#7f0a0a", color: "white", borderColor: "#7f0a0a" }}
+                style={{
+                  background: "#7f0a0a",
+                  color: "white",
+                  borderColor: "#7f0a0a",
+                }}
                 disabled={saving}
               >
                 Delete
