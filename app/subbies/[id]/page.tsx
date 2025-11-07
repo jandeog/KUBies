@@ -57,11 +57,12 @@ function mapsFromAddress(addr?: string | null) {
 function flashGreen(selector: string) {
   const el = document.querySelector<HTMLInputElement>(selector);
   if (!el) return;
-  el.classList.add("bg-green-200", "transition-colors", "duration-700");
-  setTimeout(() => {
-    el.classList.remove("bg-green-200");
-  }, 2000);
+  el.classList.remove("flash-green"); // reset if still animating
+  // force reflow so animation restarts
+  void el.offsetWidth;
+  el.classList.add("flash-green");
 }
+
 
 export default function PartnerEditorPage() {
   const router = useRouter();

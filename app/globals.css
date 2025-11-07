@@ -41,6 +41,17 @@
     --bg:#0b0b0d; --fg:#e7e7ea; --muted:#a1a1aa; --card:#111215; --border:#26272b;
   }
 }
+@keyframes flash-green {
+  0% {
+    background-color: #bbf7d0; /* tailwind green-200 */
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.flash-green {
+  animation: flash-green 1.5s ease-out;
+}
 
 /* =========================================================
    Base
