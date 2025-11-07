@@ -53,17 +53,6 @@ function mapsFromAddress(addr?: string | null) {
   )}`;
 }
 
-// ✅ helper for green flash animation
-function flashGreen(selector: string) {
-  const el = document.querySelector<HTMLInputElement>(selector);
-  if (!el) return;
-  el.classList.remove("flash-green"); // reset if still animating
-  // force reflow so animation restarts
-  void el.offsetWidth;
-  el.classList.add("flash-green");
-}
-
-
 export default function PartnerEditorPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -75,6 +64,7 @@ export default function PartnerEditorPage() {
   const [ocrData, setOcrData] = useState<any>(null);
   const [parserUsed, setParserUsed] = useState<string | null>(null);
   const [loadingSearch, setLoadingSearch] = useState(false);
+  const [highlighted, setHighlighted] = useState<string[]>([]);
 
   const [form, setForm] = useState<Partner>({
     company: "",
@@ -88,7 +78,15 @@ export default function PartnerEditorPage() {
     google_maps_url: "",
   });
 
-  // ✅ Handle OCR results (Gemini or Vision)
+  // highlight helper
+  const triggerHighlight = (field: string) => {
+    setHighlighted((prev) => [...new Set([...prev, field])]);
+    setTimeout(() => {
+      setHighlighted((prev) => prev.filter((f) => f !== field));
+    }, 1600);
+  };
+
+  // ✅ OCR Results
   function handleOCRResult(r: any) {
     setOcrData(r);
     setParserUsed(r.source || "unknown");
@@ -108,13 +106,13 @@ export default function PartnerEditorPage() {
     };
 
     Object.keys(updates).forEach((k) => {
-      if (updates[k]) flashGreen(`[name='${k}']`);
+      if (updates[k]) triggerHighlight(k);
     });
 
     setForm((prev) => ({ ...prev, ...updates }));
   }
 
-  // ✅ Heuristic Search (Gemini 2.5 Pro)
+  // ✅ Heuristic Search
   async function handleHeuristicSearch() {
     setLoadingSearch(true);
     try {
@@ -136,7 +134,7 @@ export default function PartnerEditorPage() {
       }
 
       Object.keys(data).forEach((k) => {
-        if (data[k]) flashGreen(`[name='${k}']`);
+        if (data[k]) triggerHighlight(k);
       });
 
       setForm((prev) => ({ ...prev, ...data }));
@@ -148,7 +146,7 @@ export default function PartnerEditorPage() {
     }
   }
 
-  // ✅ Load existing subbie
+  // ✅ Load data
   React.useEffect(() => {
     (async () => {
       const { data: all } = await supabase.from("partners").select("specialty");
@@ -169,20 +167,7 @@ export default function PartnerEditorPage() {
           )
           .eq("id", params.id)
           .single();
-        if (data) {
-          setForm({
-            id: data.id,
-            company: data.company ?? "",
-            contact_last_name: data.contact_last_name,
-            contact_first_name: data.contact_first_name,
-            specialty: data.specialty,
-            email: data.email,
-            phone_business: data.phone_business,
-            phone_cell: data.phone_cell,
-            address: data.address,
-            google_maps_url: data.google_maps_url,
-          });
-        }
+        if (data) setForm(data);
       }
       setLoading(false);
     })();
@@ -239,10 +224,6 @@ export default function PartnerEditorPage() {
     router.push("/subbies");
   }
 
-  function onCancel() {
-    router.push("/subbies");
-  }
-
   return (
     <div className="max-w-3xl mx-auto p-4 space-y-6">
       <header className="flex items-center justify-between gap-2 flex-wrap">
@@ -259,7 +240,6 @@ export default function PartnerEditorPage() {
                   variant="outline"
                   onClick={handleHeuristicSearch}
                   disabled={loadingSearch}
-                  className="relative"
                 >
                   {loadingSearch ? (
                     <Loader2 className="animate-spin w-4 h-4" />
@@ -286,6 +266,7 @@ export default function PartnerEditorPage() {
         <div className="p-4 opacity-70">Loading…</div>
       ) : (
         <form onSubmit={onSave} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* COMPANY */}
           <div className="md:col-span-2">
             <OCRConfidenceField
               label="Company"
@@ -293,6 +274,7 @@ export default function PartnerEditorPage() {
               required
               value={form.company}
               ocrData={ocrData}
+              className={highlighted.includes("company") ? "bg-green-200 transition-colors" : ""}
               onChange={(val) => setForm((f) => ({ ...f, company: val }))}
             />
           </div>
@@ -302,6 +284,7 @@ export default function PartnerEditorPage() {
             field="first_name"
             value={form.contact_first_name || ""}
             ocrData={ocrData}
+            className={highlighted.includes("contact_first_name") ? "bg-green-200 transition-colors" : ""}
             onChange={(val) => setForm((f) => ({ ...f, contact_first_name: val }))}
           />
           <OCRConfidenceField
@@ -309,6 +292,7 @@ export default function PartnerEditorPage() {
             field="last_name"
             value={form.contact_last_name || ""}
             ocrData={ocrData}
+            className={highlighted.includes("contact_last_name") ? "bg-green-200 transition-colors" : ""}
             onChange={(val) => setForm((f) => ({ ...f, contact_last_name: val }))}
           />
 
@@ -318,6 +302,7 @@ export default function PartnerEditorPage() {
               name="specialty"
               value={form.specialty || ""}
               onChange={(e) => setForm((f) => ({ ...f, specialty: e.target.value }))}
+              className={highlighted.includes("specialty") ? "bg-green-200 transition-colors" : ""}
               list="specialty-options"
               placeholder="Specialty"
             />
@@ -333,6 +318,7 @@ export default function PartnerEditorPage() {
             field="email"
             value={form.email || ""}
             ocrData={ocrData}
+            className={highlighted.includes("email") ? "bg-green-200 transition-colors" : ""}
             onChange={(val) => setForm((f) => ({ ...f, email: val }))}
           />
 
@@ -341,14 +327,17 @@ export default function PartnerEditorPage() {
             field="phones"
             value={form.phone_business || ""}
             ocrData={ocrData}
+            className={highlighted.includes("phone_business") ? "bg-green-200 transition-colors" : ""}
             onChange={(val) => setForm((f) => ({ ...f, phone_business: val }))}
           />
+
           <div>
             <label>Cell phone</label>
             <input
               name="phone_cell"
               value={form.phone_cell || ""}
               onChange={(e) => setForm((f) => ({ ...f, phone_cell: e.target.value }))}
+              className={highlighted.includes("phone_cell") ? "bg-green-200 transition-colors" : ""}
               placeholder="+30…"
             />
           </div>
@@ -358,6 +347,7 @@ export default function PartnerEditorPage() {
             field="address"
             value={form.address || ""}
             ocrData={ocrData}
+            className={highlighted.includes("address") ? "bg-green-200 transition-colors" : ""}
             onChange={(val) => setForm((f) => ({ ...f, address: val }))}
           />
 
@@ -370,6 +360,7 @@ export default function PartnerEditorPage() {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, google_maps_url: e.target.value }))
                 }
+                className={highlighted.includes("google_maps_url") ? "bg-green-200 transition-colors" : ""}
                 placeholder="https://www.google.com/maps/…"
               />
               <Button
@@ -386,6 +377,7 @@ export default function PartnerEditorPage() {
             </div>
           </div>
 
+          {/* FOOTER */}
           <div className="md:col-span-2 flex gap-2 justify-end items-center">
             {parserUsed && (
               <span
@@ -413,7 +405,7 @@ export default function PartnerEditorPage() {
                 Delete
               </Button>
             )}
-            <Button type="button" variant="ghost" onClick={onCancel}>
+            <Button type="button" variant="ghost" onClick={() => router.push("/subbies")}>
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
