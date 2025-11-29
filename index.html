@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mariolata Stone House – Heritage Retreat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; color: #262626; }
+    header, section { padding: 60px 10vw; }
+    .hero {
+      min-height: 90vh;
+      color: #f6f5f0;
+      background-size: cover;
+      background-position: center;
+      background-image: url("hero-placeholder.jpg");
+      position: relative;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+    }
+    .hero h1 { font-size: 3rem; margin-bottom: 0.5rem; }
+    .hero p { font-size: 1.2rem; max-width: 480px; }
+    .btn {
+      display: inline-block;
+      padding: 12px 26px;
+      margin-right: 12px;
+      margin-top: 20px;
+      border-radius: 999px;
+      border: 1px solid #f6f5f0;
+      text-decoration: none;
+      color: #262626;
+      background: #f6f5f0;
+      font-weight: 600;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #f6f5f0;
+    }
+    .section-title { font-size: 2rem; margin-bottom: 10px; }
+    .columns-3, .columns-2 {
+      display: grid;
+      gap: 24px;
+    }
+    .columns-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .columns-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: center; }
+    .card {
+      padding: 20px;
+      border-radius: 16px;
+      background: #f6f5f0;
+    }
+    .muted { color: #666; font-size: 0.9rem; }
+    .beige { background: #f0e6d9; }
+    .olive { background: #f3f5ee; }
+    .dark { background: #262626; color: #f6f5f0; text-align: center; }
+    footer { font-size: 0.9rem; padding: 24px 10vw; background: #111; color: #aaa; display:flex; justify-content:space-between; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Mariolata Stone House</h1>
+      <p>Heritage retreat at the foot of Mount Parnassos, in a restored 1830 stone house.</p>
+      <div>
+        <a href="#book" class="btn">Book Your Stay</a>
+        <a href="#the-house" class="btn btn-outline">Explore the House</a>
+      </div>
+      <p class="muted" style="margin-top:20px;">
+        Since 1830 · Up to 10 guests · 3 bedrooms · 2 fireplaces
+      </p>
+    </div>
+  </header>
+
+  <section>
+    <h2 class="section-title">A stone house with a story</h2>
+    <p>
+      Built in 1830 and lovingly restored with traditional materials, Mariolata Stone House is your warm,
+      authentic base in a quiet stone-built village, just a short drive from Parnassos and Delphi.
+    </p>
+    <div class="columns-3" style="margin-top:30px;">
+      <div class="card">
+        <h3>Authentic Heritage</h3>
+        <p>Original stone walls, wooden ceilings and the character of a 19th-century Greek mountain home.</p>
+      </div>
+      <div class="card">
+        <h3>Space for Everyone</h3>
+        <p>3 bedrooms, 2 bathrooms and two living rooms with fireplaces, comfortably hosting up to 10 guests.</p>
+      </div>
+      <div class="card">
+        <h3>Nature &amp; Calm</h3>
+        <p>A 600 m² stone yard, balcony with ravine views and the silence of the old village around you.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="the-house" class="beige">
+    <div class="columns-2">
+      <div>
+        <h2 class="section-title">The House at a Glance</h2>
+        <h3>Upper level</h3>
+        <p>Fully equipped kitchen, dining area and cozy living room with a large fireplace, plus a balcony overlooking the ravine and village.</p>
+        <h3>Lower level</h3>
+        <p>Three bedrooms, a second living room with fireplace and two bathrooms, ideal for families or groups.</p>
+        <h3>Outdoors</h3>
+        <p>600 m² stone-paved yard with a traditional wood-burning oven, BBQ, wood storage and private parking.</p>
+      </div>
+      <div>
+        <!-- Placeholder for photo -->
+        <div style="background:#ccc; height:260px; border-radius:16px; text-align:center; line-height:260px;">
+          Photo of living room / balcony
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">A glimpse inside</h2>
+    <div class="columns-3" style="margin-top:20px;">
+      <div style="background:#ddd; height:140px; border-radius:12px;">Exterior</div>
+      <div style="background:#ddd; height:140px; border-radius:12px;">Living Room</div>
+      <div style="background:#ddd; height:140px; border-radius:12px;">Fireplace</div>
+      <div style="background:#ddd; height:140px; border-radius:12px;">Bedrooms</div>
+      <div style="background:#ddd; height:140px; border-radius:12px;">Yard &amp; Oven</div>
+      <div style="background:#ddd; height:140px; border-radius:12px;">Balcony View</div>
+    </div>
+  </section>
+
+  <section class="olive">
+    <h2 class="section-title">What your stay can look like</h2>
+    <div class="columns-3" style="margin-top:20px;">
+      <div class="card">
+        <h3>Mountain &amp; Nature Walks</h3>
+        <p>Explore the paths around Mariolata and the wider Parnassos region.</p>
+      </div>
+      <div class="card">
+        <h3>Wood-Fired Meals</h3>
+        <p>Use the traditional wood-burning oven and BBQ in the yard for long dinners with friends and family.</p>
+      </div>
+      <div class="card">
+        <h3>Winter Nights by the Fire</h3>
+        <p>Two fireplaces and central heating keep the house warm and cozy after a day outdoors.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="book" class="dark">
+    <h2 class="section-title">Ready to plan your stay?</h2>
+    <p>
+      Whether you're gathering friends, traveling as a family or looking for a quiet retreat in nature,
+      Mariolata Stone House is ready to welcome you.
+    </p>
+    <a href="#" class="btn">Book Your Stay</a>
+  </section>
+
+  <footer>
+    <div>© Mariolata Stone House</div>
+    <div>Phone · Email · Instagram</div>
+    <div>Home · The House · Gallery · Experiences · Location</div>
+  </footer>
+
+</body>
+</html>
